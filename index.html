@@ -1172,6 +1172,30 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
 .b-chip.on{background:var(--bi);border-color:var(--bi);color:var(--bp);box-shadow:2px 2px 0 0 var(--bs)}
 .b-chip.on small{color:var(--bs)}
 .b-dur em{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--bm);margin-left:auto}
+/* service + availability states */
+.b-svc{padding:10px 14px 0;border-top:1px solid var(--bl)}
+.b-svc .b-f>span{margin-bottom:2px}
+.b-slot.free{border-color:var(--bs)}
+.b-slot.free::after{content:"";position:absolute;right:4px;top:4px;width:5px;height:5px;border-radius:50%;background:var(--bs)}
+.b-slot{position:relative}
+.b-slot.checking{border-style:dashed;animation:bPulse 1s ease-in-out infinite}
+.b-slot.busy,.b-slot.sent{color:rgba(15,33,46,.35);border-style:dashed;background:repeating-linear-gradient(135deg,transparent 0 5px,rgba(15,33,46,.05) 5px 6px);text-decoration:line-through;cursor:not-allowed}
+.b-slot.busy:hover,.b-slot.sent:hover{transform:none;box-shadow:none;background:repeating-linear-gradient(135deg,transparent 0 5px,rgba(15,33,46,.05) 5px 6px)}
+.b-slot.busy span:last-child,.b-slot.sent span:last-child{text-decoration:none;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase}
+.b-slot.busy.on,.b-slot.sent.on{background:repeating-linear-gradient(135deg,transparent 0 5px,rgba(210,100,58,.12) 5px 6px);color:var(--signal-ink,#A44A23);border-color:var(--signal,#D2643A);box-shadow:none}
+.b-slot.busy.on span:last-child{color:var(--signal-ink,#A44A23)}
+.b-avail{display:flex;align-items:center;gap:8px;padding:8px 14px 10px;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--bm);border-top:1px dashed var(--bl);min-height:34px}
+.b-avail>span{display:inline-flex;align-items:center;gap:7px;flex-wrap:wrap}
+.b-avail.free{color:var(--bs)}
+.b-avail.busy{color:var(--signal-ink,#A44A23)}
+.b-avail.error{color:var(--signal-ink,#A44A23)}
+.b-avail .b-node.busy{background:var(--signal,#D2643A);border-color:var(--signal,#D2643A)}
+.b-avail .b-node.err{background:transparent;border-color:var(--signal,#D2643A);border-style:dashed}
+.b-spin{width:11px;height:11px;border-radius:50%;border:2px solid var(--bl2);border-top-color:var(--bs);animation:bSpin .8s linear infinite;flex:none}
+@keyframes bSpin{to{transform:rotate(360deg)}}
+.b-link{font:inherit;color:var(--bi);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--bs);cursor:pointer}
+.b-link:hover{color:var(--bs)}
+.b-notice{grid-column:1/-1;padding:6px 12px 0;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--signal-ink,#A44A23)}
 /* overlap band */
 .b-ovl{padding:10px 14px 8px;border-bottom:1px solid var(--bl)}
 .b-ovlr{display:grid;grid-template-columns:34px 1fr;gap:0 8px;align-items:center}
@@ -1199,8 +1223,9 @@ select.inp{appearance:none;-webkit-appearance:none;background-image:linear-gradi
 .b-form{border-top:1px solid var(--bi);transition:opacity .4s}
 .b-form.dim .b-fields{opacity:.5}
 .b-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px;padding:12px 14px 12px}
+.b-fields .b-f:first-child{grid-column:auto}
 .b-f{display:grid;gap:3px;min-width:0}
-.b-f.wide,.b-f:first-child{grid-column:1/-1}
+.b-f.wide{grid-column:1/-1}
 .b-f>span{display:flex;align-items:center;gap:5px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--bm)}
 .b-f>span svg{color:var(--bs)}
 .b-f>span em{margin-left:auto;font-style:normal;text-transform:none;letter-spacing:0;color:var(--bm)}
@@ -2395,12 +2420,65 @@ function onBook(payload) {
   const esc = s => String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
   const stamp = d => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
   const start = new Date(payload.utc), end = new Date(payload.utc + payload.duration * 60000);
-  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Margareth Condes//Discovery call request//EN', 'METHOD:REQUEST', 'BEGIN:VEVENT', `UID:${payload.ref}@margarethcondes`, `DTSTAMP:${stamp(new Date())}`, `DTSTART:${stamp(start)}`, `DTEND:${stamp(end)}`, `SUMMARY:${esc('Discovery call · Margareth Condes' + (payload.service ? ' · ' + payload.service : ''))}`, `DESCRIPTION:${esc(payload.summary)}`, 'STATUS:TENTATIVE', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Margareth Condes//Discovery call request//EN', 'METHOD:REQUEST', 'BEGIN:VEVENT', `UID:${payload.ref}@margarethcondes`, `DTSTAMP:${stamp(new Date())}`, `DTSTART:${stamp(start)}`, `DTEND:${stamp(end)}`, `SUMMARY:${esc('[Pending] Discovery call · Margareth Condes' + (payload.service ? ' · ' + payload.service : ''))}`, `DESCRIPTION:${esc(payload.summary)}`, 'STATUS:TENTATIVE', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
   let icsUrl = '';
   try { icsUrl = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' })); } catch (e) {}
   const mailto = `mailto:${payload.mailto}?subject=${encodeURIComponent(`Discovery call request · ${payload.service || 'open conversation'} · ${fmtShort(payload.date)} ${payload.time} ${payload.abbr}`)}&body=${encodeURIComponent(payload.summary)}`;
   return { mailto, icsUrl, icsName: `discovery-call-${key(payload.date)}-${payload.time.replace(':', '')}.ics` };
 }
+
+/* ---------- n8n availability check (READ-ONLY) ----------
+   Website form → Webhook → Edit Fields → Google Calendar (free/busy, read only) → IF → Respond to Webhook.
+   The checker answers "is this period free on my calendar?". It never creates or confirms anything.
+   checkUrl below is the TEST endpoint; production is the same path under /webhook/ (manual swap). */
+const N8N = {
+  checkUrl: 'https://miniveda.app.n8n.cloud/webhook-test/check-availability',
+  timeoutMs: 12000
+};
+const N8N_IS_TEST = /\/webhook-test\//.test(N8N.checkUrl);
+/* accepted reply shapes (first array item is used when n8n returns an array):
+   {available:true|false, reason?}  ·  {status:'available'|'conflict'|…}  ·  {busy:true|false}  ·  {conflicts:[…]} */
+function parseAvailability(json) {
+  const j = Array.isArray(json) ? json[0] : json;
+  if (!j || typeof j !== 'object') return null;
+  const reason = j.reason || j.message || '';
+  if (typeof j.available === 'boolean') return { available: j.available, reason };
+  if (typeof j.isAvailable === 'boolean') return { available: j.isAvailable, reason };
+  if (typeof j.busy === 'boolean') return { available: !j.busy, reason };
+  if (typeof j.status === 'string') {
+    const s = j.status.toLowerCase();
+    if (['available', 'free', 'ok', 'open'].includes(s)) return { available: true, reason };
+    if (['conflict', 'busy', 'unavailable', 'taken', 'booked'].includes(s)) return { available: false, reason };
+  }
+  if (Array.isArray(j.conflicts)) return { available: j.conflicts.length === 0, reason };
+  return null;
+}
+async function checkAvailability(payload) {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), N8N.timeoutMs);
+  try {
+    const r = await fetch(N8N.checkUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: ctl.signal });
+    if (!r.ok) return { state: 'error', reason: `Checker responded ${r.status}` };
+    let j = null;
+    try { j = await r.json(); } catch (e) { return { state: 'error', reason: 'Checker returned no JSON' }; }
+    const a = parseAvailability(j);
+    if (!a) return { state: 'error', reason: 'Unrecognised checker reply' };
+    return { state: a.available ? 'free' : 'busy', reason: a.reason };
+  } catch (e) {
+    return { state: 'error', reason: e && e.name === 'AbortError' ? 'Checker timed out' : 'Checker unreachable' };
+  } finally { clearTimeout(timer); }
+}
+/* exact payload the workflow expects (field names preserved) */
+const checkPayload = (slot, duration, date, slotZone, form) => ({
+  utc: slot.utc, duration, date: key(date), time: slot.label, end: slot.utc + duration * 60000, slotZone,
+  name: form.name.trim(), email: form.email.trim(), service: form.service || '', message: form.message.trim()
+});
+/* duplicate-submission memory (this browser) */
+const SENT_KEY = 'mc-sent-requests';
+const sentList = () => { try { return JSON.parse(localStorage.getItem(SENT_KEY) || '[]'); } catch (e) { return []; } };
+const rememberSent = utc => { try { localStorage.setItem(SENT_KEY, JSON.stringify([...new Set([...sentList(), utc])].slice(-20))); } catch (e) {} };
+/* suggested length per service (adjustable) */
+const SVC_DUR = { 'OSP / FTTH design support': 30, 'Design review & QC support': 30, 'Technical documentation': 30, 'Project systems & trackers': 30, 'AI-assisted documentation': 30, 'Workflow & integration prototypes': 45 };
 
 /* ---------- atoms ---------- */
 const Fig = ({ no, title, right, children, className = '' }) => h('section', { className: 'b-fig ' + className },
@@ -2473,15 +2551,16 @@ function Terminal({ data, links, onReset }) {
   const lines = useMemo(() => [
     ['>', 'init request.sheet-07', 0],
     ['✓', `date       ${key(data.date)}  (${fmtShort(data.date)})`, 1],
-    ['✓', `window     ${data.time}–${data.end} ${data.abbr}` + (data.slotZone === data.myZone ? '' : `  (${data.myTime} ${zName(data.myZone)})`) + `  ·  ${data.pht} PHT`, 1],
+    ['✓', `window     ${data.time}–${data.endLabel} ${data.abbr}` + (data.slotZone === data.myZone ? '' : `  (${data.myTime} ${zName(data.myZone)})`) + `  ·  ${data.pht} PHT`, 1],
     ['✓', `length     ${data.duration} min`, 1],
     ['✓', `service    ${data.service || 'open conversation'}`, 1],
     ['✓', `from       ${data.name} <${data.email}>`, 1],
     ['·', `notes      ${data.message ? data.message.slice(0, 48) + (data.message.length > 48 ? '…' : '') : '(none)'}`, 0],
     ['>', 'validating fields ........ ok', 0],
+    ['✓', 'calendar check (n8n) ..... period free', 1],
     ['>', 'preparing email + .ics ... ok', 0],
     ['>', `ref        ${data.ref}`, 2],
-    ['■', 'REQUEST PREPARED · send it, I confirm by email', 3]
+    ['■', 'REQUEST PREPARED · PENDING CONFIRMATION · send it, I reply within one business day', 3]
   ], [data]);
   const [n, setN] = useState(0);
   useEffect(() => { setN(0); let i = 0; const t = setInterval(() => { i++; setN(i); if (i >= lines.length) clearInterval(t); }, 210); return () => clearInterval(t); }, [lines]);
@@ -2489,11 +2568,11 @@ function Terminal({ data, links, onReset }) {
   const [copied, setCopied] = useState(false);
   const copy = () => { try { navigator.clipboard.writeText(data.summary).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); } catch (e) {} };
   return h('div', { className: 'b-done' },
-    h('header', { className: 'b-figh' }, h('p', null, h('b', null, 'FIG 4.'), ' Request prepared'), h('span', { className: 'b-chk ' + (done ? 'on' : '') }, h('svg', { viewBox: '0 0 24 24', 'aria-hidden': 'true' }, h('circle', { cx: 12, cy: 12, r: 10.5 }), h('path', { d: 'M7 12.5l3.2 3.2L17 9' })), done ? 'prepared' : 'preparing')),
+    h('header', { className: 'b-figh' }, h('p', null, h('b', null, 'FIG 4.'), ' Pending confirmation'), h('span', { className: 'b-chk ' + (done ? 'on' : '') }, h('svg', { viewBox: '0 0 24 24', 'aria-hidden': 'true' }, h('circle', { cx: 12, cy: 12, r: 10.5 }), h('path', { d: 'M7 12.5l3.2 3.2L17 9' })), done ? 'pending' : 'preparing')),
     h('div', { className: 'b-term' },
       h('ol', { 'aria-live': 'polite' }, lines.slice(0, n).map(([g, t, k], i) => h('li', { key: i, className: 'k' + k }, h('span', null, g), h('span', null, t))), !done ? h('li', { className: 'cur' }, h('span', null, '›'), h('i', null)) : null)),
     h('footer', { className: 'b-donef' },
-      h('span', null, 'Nothing is sent or booked automatically — use the buttons.'),
+      h('span', null, 'Not booked yet — the slot was free when checked. Send the request; it is confirmed only when I reply.'),
       h('span', { className: 'b-acts' },
         h('a', { href: links.mailto, className: 'b-btn pri' }, h(Ic.Mail, { size: 12 }), ' Send by email'),
         links.icsUrl ? h('a', { href: links.icsUrl, download: links.icsName, className: 'b-btn' }, h(Ic.Calendar, { size: 12 }), ' Download .ics') : null,
@@ -2529,29 +2608,52 @@ function DiscoveryBooking({ sheet = '07', mailto = '' }) {
   const [booked, setBooked] = useState(null);
   const [links, setLinks] = useState(null);
   const t0 = useRef(Date.now());
+  const [avail, setAvail] = useState({});       // `${utc}|${duration}` → {state:'free'|'busy'|'error', reason}
+  const [checking, setChecking] = useState(null); // key being checked
+  const [sent, setSent] = useState(() => sentList());
+  const [notice, setNotice] = useState('');
+  const seq = useRef(0);
   useEffect(() => { window.mcBookingTopic = t => setForm(f => ({ ...f, service: (String(t).toLowerCase() === 'engineering support' ? SERVICES[0][1][0] : SERVICES.flatMap(g => g[1]).find(x => x.toLowerCase().startsWith(String(t).toLowerCase().slice(0, 8)))) || f.service })); return () => { delete window.mcBookingTopic; }; }, []);
   const day = useMemo(() => date ? slotsFor(date, duration, slotZone) : { slots: [], blocked: [] }, [date, duration, slotZone]);
-  useEffect(() => { setTime(null); }, [date, duration, slotZone]);
+  useEffect(() => { setTime(t => t != null && day.slots.some(s => s.utc === t) ? t : null); }, [day]);
   useEffect(() => { if (date && !dayStatus(date, slotZone, now).open) setDate(null); }, [slotZone]);
   const slot = day.slots.find(s => s.utc === time);
+  const akey = s => `${s.utc}|${duration}`;
+  const av = slot ? avail[akey(slot)] : null;
+  const isChecking = !!slot && checking === akey(slot);
+  const runCheck = async s => {
+    const k = akey(s), my = ++seq.current;
+    setChecking(k); setNotice('');
+    const res = await checkAvailability(checkPayload(s, duration, date, slotZone, form));
+    if (my !== seq.current) return res;
+    setAvail(a => ({ ...a, [k]: { ...res, at: Date.now() } }));
+    setChecking(null);
+    return res;
+  };
+  useEffect(() => { if (slot && !av && !isChecking) runCheck(slot); }, [slot && slot.utc, duration]);
+  const alreadySent = !!slot && sent.includes(slot.utc);
+  const canSend = !!slot && !!av && av.state === 'free' && !alreadySent;
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email), nameOk = form.name.trim().length > 1, formOk = emailOk && nameOk;
-  const step = status === 'done' ? 4 : !date ? 1 : !slot ? 2 : !formOk ? 3 : 4;
+  const step = status === 'done' ? 4 : !date ? 1 : !slot || !av || av.state !== 'free' ? 2 : !formOk ? 3 : 4;
   const myOf = s => { const w = utcToWall(s.utc, myZone); const d0 = utcToWall(s.utc, slotZone); const sh = w.key === d0.key ? '' : w.key > d0.key ? ' +1d' : ' −1d'; return mm(w.min) + sh; };
   const submit = e => {
     e.preventDefault(); setTouched({ name: true, email: true });
-    if (!formOk || !slot) return;
+    if (!formOk || !slot || status === 'busy') return;
     if (form.company || Date.now() - t0.current < 3000) return; // honeypot / too fast
+    if (alreadySent) { setNotice('You already sent a request for this slot from this browser.'); return; }
+    if (!av || av.state !== 'free') { runCheck(slot); return; }
+    if (Date.now() - av.at > 5 * 60000) { setNotice('Re-checking the calendar\u2026'); runCheck(slot); return; } // stale check → verify again first
     const abbr = zAbbr(slotZone, date);
     const ref = `MC-${hash(key(date) + slot.label + form.email).toString(16).slice(0, 6).toUpperCase()}`;
     const myTime = myOf(slot);
-    const summary = `Discovery call request\nService: ${form.service || 'open conversation'}\nDate: ${fmtLong(date)}\nTime: ${slot.label}–${slot.end} ${abbr} (${zName(slotZone)})${slotZone === myZone ? '' : ` · ${myTime} ${zName(myZone)}`} · ${slot.pht} PHT\nLength: ${duration} min\nName: ${form.name.trim()}\nEmail: ${form.email.trim()}\nNotes: ${form.message.trim() || '-'}\nRef: ${ref}`;
-    const payload = { ...form, date, duration, time: slot.label, end: slot.end, utc: slot.utc, abbr, pht: slot.pht, slotZone, myZone, myTime, ref, summary, mailto };
+    const summary = `Discovery call request (pending confirmation)\nService: ${form.service || 'open conversation'}\nDate: ${fmtLong(date)}\nTime: ${slot.label}–${slot.end} ${abbr} (${zName(slotZone)})${slotZone === myZone ? '' : ` · ${myTime} ${zName(myZone)}`} · ${slot.pht} PHT\nLength: ${duration} min\nName: ${form.name.trim()}\nEmail: ${form.email.trim()}\nNotes: ${form.message.trim() || '-'}\nCalendar check: period free at time of request\nRef: ${ref}`;
+    const payload = { ...form, date, duration, time: slot.label, endLabel: slot.end, end: slot.utc + duration * 60000, utc: slot.utc, abbr, pht: slot.pht, slotZone, myZone, myTime, ref, summary, mailto, checkedAt: Date.now() };
     setStatus('busy');
-    setTimeout(() => { setLinks(onBook(payload)); setBooked(payload); setStatus('done'); }, 700);
+    setTimeout(() => { setLinks(onBook(payload)); setBooked(payload); rememberSent(slot.utc); setSent(sentList()); setStatus('done'); }, 700);
   };
-  const reset = () => { setStatus('idle'); setBooked(null); setLinks(null); setDate(null); setTime(null); setForm({ service: '', name: '', email: '', message: '', company: '' }); setTouched({}); t0.current = Date.now(); };
+  const reset = () => { setStatus('idle'); setBooked(null); setLinks(null); setDate(null); setTime(null); setForm({ service: '', name: '', email: '', message: '', company: '' }); setTouched({}); setNotice(''); t0.current = Date.now(); };
   const STEPS = ['Date', 'Time', 'Details', 'Send'];
-  const stepDone = i => status === 'done' || (i === 0 && !!date) || (i === 1 && !!slot) || (i === 2 && !!slot && formOk);
+  const stepDone = i => status === 'done' || (i === 0 && !!date) || (i === 1 && canSend) || (i === 2 && canSend && formOk);
   const zoneSel = h('div', { className: 'b-zones' },
     h('label', null, h('span', null, 'Slots in · ', zAbbr(slotZone, date || new Date())), h(Sel, { value: slotZone, onChange: e => setSlotZone(e.target.value), 'aria-label': 'Time zone the slots are shown in' }, ZONES.map(z => h('option', { key: z[0], value: z[0] }, z[1])))),
     h('label', null, h('span', null, 'Your zone · ', zOffsetLabel(myZone, date || new Date())), h(Sel, { value: myZone, onChange: e => setMyZone(e.target.value), 'aria-label': 'Your time zone' }, MY_ZONES.map(z => h('option', { key: z[0], value: z[0] }, z[1])))));
@@ -2574,24 +2676,32 @@ function DiscoveryBooking({ sheet = '07', mailto = '' }) {
       h('div', { className: 'b-left' },
         h(Fig, { no: '1', title: 'Date', right: date ? fmtShort(date) : 'pick a weekday' },
           h(Calendar, { value: date, onChange: setDate, slotZone, now }),
-          h('div', { className: 'b-dur' }, h('span', null, 'Length'), DURATIONS.map(d => h('button', { key: d, type: 'button', 'aria-pressed': d === duration, onClick: () => setDuration(d), className: 'b-chip' + (d === duration ? ' on' : '') }, d, h('small', null, 'min'))), h('em', null, duration === 15 ? 'default' : `+${AVAIL.bufferMin} min buffer`)))),
+          h('div', { className: 'b-svc' }, h('label', { className: 'b-f' }, h('span', null, h(Ic.Sparkles, { size: 11 }), ' Service ', h('em', null, form.service ? (SERVICES[0][1].includes(form.service) ? 'established' : 'practice-based') : 'optional')), h(Sel, { value: form.service, onChange: e => { const v = e.target.value; setForm({ ...form, service: v }); setDuration(SVC_DUR[v] || 15); } }, h('option', { value: '' }, 'Open conversation \u2014 not sure yet'), SERVICES.map(([g, items]) => h('optgroup', { key: g, label: g }, items.map(x => h('option', { key: x, value: x }, x))))))),
+          h('div', { className: 'b-dur' }, h('span', null, 'Length'), DURATIONS.map(d => h('button', { key: d, type: 'button', 'aria-pressed': d === duration, onClick: () => setDuration(d), className: 'b-chip' + (d === duration ? ' on' : '') }, d, h('small', null, 'min'))), h('em', null, form.service && SVC_DUR[form.service] === duration ? 'suggested for this service' : duration === 15 ? 'default' : `+${AVAIL.bufferMin} min buffer`)))),
       h('div', { className: 'b-right' },
         h(Fig, { no: '2', title: 'Time', className: !date ? 'dim' : '', right: date ? `${day.slots.length} open · ${zAbbr(slotZone, date)} → ${zAbbr(myZone, date)}` : 'awaiting FIG 1' },
           h(Overlap, { date, slotZone, myZone }),
           !date ? h('p', { className: 'b-empty' }, h(Ic.Lock, { size: 12 }), ' Pick a date to load times inside my working window') :
-          day.slots.length ? h('div', { className: 'b-slots', role: 'listbox', 'aria-label': 'Time slots' }, day.slots.map((s, i) => h('button', { key: s.utc, type: 'button', role: 'option', 'aria-selected': s.utc === time, onClick: () => setTime(s.utc), className: 'b-slot' + (s.utc === time ? ' on' : ''), style: { '--i': i }, title: `${s.pht} PHT` }, h('b', null, s.label), h('span', { className: 'arr' }, '\u2192'), h('span', null, slotZone === myZone ? s.end : myOf(s)))))
+          day.slots.length ? h(React.Fragment, null, h('div', { className: 'b-slots', role: 'listbox', 'aria-label': 'Candidate time slots (verified when selected)' }, day.slots.map((s, i) => { const a = avail[akey(s)]; const st = checking === akey(s) ? 'checking' : sent.includes(s.utc) ? 'sent' : a ? a.state : ''; return h('button', { key: s.utc, type: 'button', role: 'option', 'aria-selected': s.utc === time, disabled: st === 'busy' || st === 'sent', 'aria-label': `${s.label} ${zAbbr(slotZone, date)}${st === 'busy' ? ', already booked' : st === 'sent' ? ', request already sent' : st === 'free' ? ', free on calendar' : ', not yet checked'}`, onClick: () => setTime(s.utc), className: 'b-slot ' + st + (s.utc === time ? ' on' : ''), style: { '--i': i }, title: `${s.pht} PHT` }, h('b', null, s.label), h('span', { className: 'arr' }, '\u2192'), h('span', null, st === 'busy' ? 'booked' : st === 'sent' ? 'sent' : slotZone === myZone ? s.end : myOf(s))); })),
+            h('div', { className: 'b-avail ' + (isChecking ? 'checking' : av ? av.state : ''), role: 'status', 'aria-live': 'polite' },
+              !slot ? h('span', null, h('i', { className: 'b-node' }), ' Times are candidates until checked against my calendar') :
+              isChecking ? h('span', null, h('i', { className: 'b-spin' }), ` Checking ${slot.label} ${zAbbr(slotZone, date)} (${duration} min) against my calendar\u2026`) :
+              alreadySent ? h('span', null, h('i', { className: 'b-node on' }), ' You already sent a request for this slot') :
+              av && av.state === 'free' ? h('span', null, h(Ic.Check, { size: 12, strokeWidth: 3 }), ` ${slot.label}\u2013${slot.end} ${zAbbr(slotZone, date)} is free on my calendar \u00B7 you can send the request`) :
+              av && av.state === 'busy' ? h('span', null, h('i', { className: 'b-node busy' }), ` ${slot.label} ${zAbbr(slotZone, date)} is already booked${av.reason ? ' \u00B7 ' + av.reason : ''} \u2014 pick another time`) :
+              av && av.state === 'error' ? h('span', null, h('i', { className: 'b-node err' }), ` Couldn\u2019t verify this slot (${av.reason}). Not treated as available. `, h('button', { type: 'button', className: 'b-link', onClick: () => runCheck(slot) }, 'Retry check')) : null))
           : h('p', { className: 'b-empty' }, day.blocked.length ? `Regular holiday · ${day.blocked[0]}` : 'No overlap with my working window on this date')),
-        h('form', { className: 'b-form' + (slot ? '' : ' dim'), onSubmit: submit, noValidate: true },
-          h(Fig, { no: '3', title: 'Details', right: slot ? `${fmtShort(date)} · ${slot.label} ${zAbbr(slotZone, date)}` : 'awaiting FIG 2' },
+        h('form', { className: 'b-form' + (canSend ? '' : ' dim'), onSubmit: submit, noValidate: true },
+          h(Fig, { no: '3', title: 'Details', right: canSend ? `${fmtShort(date)} · ${slot.label} ${zAbbr(slotZone, date)} · free` : slot ? 'awaiting calendar check' : 'awaiting FIG 2' },
             h('div', { className: 'b-fields' },
-              h('label', { className: 'b-f' }, h('span', null, h(Ic.Sparkles, { size: 11 }), ' Service ', h('em', null, form.service ? (SERVICES[0][1].includes(form.service) ? 'established' : 'practice-based') : 'optional')), h(Sel, { value: form.service, disabled: !slot, onChange: e => setForm({ ...form, service: e.target.value }) }, h('option', { value: '' }, 'Open conversation \u2014 not sure yet'), SERVICES.map(([g, items]) => h('optgroup', { key: g, label: g }, items.map(x => h('option', { key: x, value: x }, x)))))),
-              h('label', { className: 'b-f' + (touched.name && !nameOk ? ' err' : '') }, h('span', null, h(Ic.User, { size: 11 }), ' Name ', h('em', null, touched.name && !nameOk ? 'required' : '')), h('input', { value: form.name, disabled: !slot, autoComplete: 'name', placeholder: 'Name and company', onChange: e => setForm({ ...form, name: e.target.value }), onBlur: () => setTouched({ ...touched, name: true }) })),
-              h('label', { className: 'b-f' + (touched.email && !emailOk ? ' err' : '') }, h('span', null, h(Ic.Mail, { size: 11 }), ' Email ', h('em', null, touched.email && !emailOk ? 'valid email needed' : '')), h('input', { type: 'email', value: form.email, disabled: !slot, autoComplete: 'email', inputMode: 'email', placeholder: 'you@company.com', onChange: e => setForm({ ...form, email: e.target.value }), onBlur: () => setTouched({ ...touched, email: true }) })),
-              h('label', { className: 'b-f wide' }, h('span', null, h(Ic.MessageSquare, { size: 11 }), ' Message ', h('em', null, 'optional')), h('textarea', { rows: 2, value: form.message, disabled: !slot, placeholder: 'Scope, standards, deliverables \u2014 or the repetitive step you want to automate.', onChange: e => setForm({ ...form, message: e.target.value }) })),
+              h('label', { className: 'b-f' + (touched.name && !nameOk ? ' err' : '') }, h('span', null, h(Ic.User, { size: 11 }), ' Name ', h('em', null, touched.name && !nameOk ? 'required' : '')), h('input', { value: form.name, disabled: !canSend, autoComplete: 'name', placeholder: 'Name and company', onChange: e => setForm({ ...form, name: e.target.value }), onBlur: () => setTouched({ ...touched, name: true }) })),
+              h('label', { className: 'b-f' + (touched.email && !emailOk ? ' err' : '') }, h('span', null, h(Ic.Mail, { size: 11 }), ' Email ', h('em', null, touched.email && !emailOk ? 'valid email needed' : '')), h('input', { type: 'email', value: form.email, disabled: !canSend, autoComplete: 'email', inputMode: 'email', placeholder: 'you@company.com', onChange: e => setForm({ ...form, email: e.target.value }), onBlur: () => setTouched({ ...touched, email: true }) })),
+              h('label', { className: 'b-f wide' }, h('span', null, h(Ic.MessageSquare, { size: 11 }), ' Message ', h('em', null, 'optional')), h('textarea', { rows: 2, value: form.message, disabled: !canSend, placeholder: 'Scope, standards, deliverables \u2014 or the repetitive step you want to automate.', onChange: e => setForm({ ...form, message: e.target.value }) })),
               h('label', { className: 'b-hp', 'aria-hidden': 'true' }, 'Company', h('input', { tabIndex: -1, autoComplete: 'off', value: form.company, onChange: e => setForm({ ...form, company: e.target.value }) }))),
             h('div', { className: 'b-act' }, summaryStrip,
-              h('button', { type: 'submit', disabled: !slot || status === 'busy', className: 'b-book' + (slot && formOk ? ' ready' : '') }, h('small', null, 'FIG 4'), status === 'busy' ? 'Preparing\u2026' : 'Request this slot', h(Ic.ArrowRight, { size: 15 }))))))),
-    h('footer', { className: 'b-foot' }, h('span', null, 'Regular PH holidays only \u00B7 special non-working days and proclaimed Eid holidays are not filtered'), h('span', null, 'Step ', step, ' / 4')));
+              notice ? h('p', { className: 'b-notice', role: 'status' }, notice) : null,
+              h('button', { type: 'submit', disabled: !slot || status === 'busy' || isChecking || alreadySent || (av && av.state === 'busy'), className: 'b-book' + (canSend && formOk ? ' ready' : '') }, h('small', null, 'FIG 4'), status === 'busy' ? 'Preparing\u2026' : isChecking ? 'Checking calendar\u2026' : alreadySent ? 'Request already sent' : av && av.state === 'busy' ? 'Slot taken' : av && av.state === 'error' ? 'Retry calendar check' : 'Send request', h(Ic.ArrowRight, { size: 15 }))))))),
+    h('footer', { className: 'b-foot' }, h('span', null, 'Request only \u00B7 availability is read from my Google Calendar through n8n' + (N8N_IS_TEST ? ' (test endpoint)' : '') + ' \u00B7 regular PH holidays filtered'), h('span', null, 'Step ', step, ' / 4')));
 }
 window.DiscoveryBooking = DiscoveryBooking;
 (function () {
@@ -3638,7 +3748,7 @@ const EXP=[
   {code:'EXP-02',title:'Weekly status summary',kind:'Integration + AI draft',stage:1,problem:'Status updates repeat what the project tracker already shows.',approach:'An automation collects changed tracker rows and drafts a short summary for review before it goes out.',tools:'n8n or Make.com, Google Sheets, Gemini',guard:'Drafts only. Nothing is sent without review.',flow:[['ROW','Tracker changes'],['SUM','Collect updates'],['AI','Draft summary','ai'],['QA','Review','human'],['OUT','Send update']]},
   {code:'EXP-03',title:'Document intake and filing',kind:'Integration',stage:1,problem:'Incoming files arrive with inconsistent names and land in the wrong folders.',approach:'A Zapier flow renames new files to a naming convention, files them by project, and logs each change.',tools:'Zapier, Google Sheets',guard:'Original files are kept, and every rename is logged in a sheet.',flow:[['NEW','New file'],['ID','Read project'],['REN','Rename'],['LOG','File and log'],['QA','Spot check','human']]},
   {code:'EXP-04',title:'Drawing notes comparison',kind:'AI-assisted review',stage:0,problem:'General notes can drift between sheets in a large drawing set.',approach:'Export the note text from each sheet and use an AI assistant to list differences for a reviewer to check.',tools:'Claude, ChatGPT',guard:'The tool lists differences only. Engineering judgment stays with the reviewer.',flow:[['TXT','Exported notes'],['AI','Compare sheets','ai'],['DIF','List differences'],['QA','Reviewer decides','human']]},
-  {code:'EXP-05',title:'Booking request hand-off',kind:'Integration seam',stage:0,problem:'The portfolio booking form prepares a request, but confirming it still means copying details into a calendar and a tracker by hand.',approach:'Route every submit through one onBook(payload) function. Today it prepares a prefilled email and an .ics file in the browser; later the same payload can go to a webhook (n8n or Make.com) that writes a sheet row and a tentative calendar hold.',tools:'n8n or Make.com, Google Sheets, Google Calendar',guard:'Today the hand-off is email. Double-booking checks against the live calendar belong to the webhook step; nothing is written to a calendar from this page, and every confirmation is sent by a person.',flow:[['REQ','Form payload'],['SEAM','onBook()'],['HOOK','Webhook · later'],['LOG','Sheet row + hold'],['QA','Human confirms','human']]},
+  {code:'EXP-05',title:'Booking availability check',kind:'Integration · n8n',stage:2,problem:'The portfolio booking form prepares a request, but confirming it still means copying details into a calendar and a tracker by hand.',approach:'The form asks an n8n webhook (Webhook → Edit Fields → Google Calendar, read-only → IF → Respond) whether the requested period is free before a request can be sent. The request itself still goes out by email with an .ics attached; a later step can log it to a sheet.',tools:'n8n or Make.com, Google Sheets, Google Calendar',guard:'The webhook only reads the calendar. Nothing is created or confirmed automatically; a free slot is still only a request until I reply.',flow:[['REQ','Form payload'],['HOOK','n8n webhook'],['CAL','Calendar read'],['IF','Free or busy'],['QA','Human confirms','human']]},
 ];
 const labPanel=$('#labPanel');
 tabs($('#labIx'),EXP,x=>`<span class="ix-t">${esc(x.title)}<small>${esc(x.code)} · ${esc(x.kind)}</small></span><span class="ix-s ${x.stage>=1?'plan':''}">${STAGES[x.stage]}</span>`,i=>{
