@@ -2547,7 +2547,21 @@ function DiscoveryBooking({ sheet = '07', mailto = '' }) {
     const summary = `Discovery call request\nService: ${form.service || 'open conversation'}\nDate: ${fmtLong(date)}\nTime: ${slot.label}–${slot.end} ${abbr} (${zName(slotZone)})${slotZone === myZone ? '' : ` · ${myTime} ${zName(myZone)}`} · ${slot.pht} PHT\nLength: ${duration} min\nName: ${form.name.trim()}\nEmail: ${form.email.trim()}\nNotes: ${form.message.trim() || '-'}\nRef: ${ref}`;
     const payload = { ...form, date, duration, time: slot.label, end: slot.end, utc: slot.utc, abbr, pht: slot.pht, slotZone, myZone, myTime, ref, summary, mailto };
     setStatus('busy');
-    setTimeout(() => { setLinks(onBook(payload)); setBooked(payload); setStatus('done'); }, 700);
+    setTimeout(() => {
+  const linksResult = onBook(payload);
+  setLinks(linksResult);
+  setBooked(payload);
+  setStatus('done');
+
+  fetch('https://miniveda.app.n8n.cloud/webhook-test/check-availability', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+    .then(response => response.json())
+    .then(data => console.log('n8n response:', data))
+    .catch(error => console.error('n8n webhook error:', error));
+}, 700);
   };
   const reset = () => { setStatus('idle'); setBooked(null); setLinks(null); setDate(null); setTime(null); setForm({ service: '', name: '', email: '', message: '', company: '' }); setTouched({}); t0.current = Date.now(); };
   const STEPS = ['Date', 'Time', 'Details', 'Send'];
