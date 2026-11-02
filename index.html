@@ -2643,7 +2643,7 @@ const N8N = {
   checkUrl: 'https://miniveda.app.n8n.cloud/webhook-test/check-availability',
   /* auto-confirmation endpoint for REGULAR hours. Leave empty until the n8n workflow that re-checks the
      range and creates the calendar event exists; while empty, regular-hour slots fall back to requests. */
-  bookUrl: '',
+ bookUrl: 'https://miniveda.app.n8n.cloud/webhook-test/book-appointment',
   timeoutMs: 12000
 };
 const AUTO_CONFIRM_READY = !!N8N.bookUrl;
