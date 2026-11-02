@@ -2640,7 +2640,7 @@ function onBook(payload) {
    The checker answers "is this period free on my calendar?". It never creates or confirms anything.
    checkUrl below is the TEST endpoint; production is the same path under /webhook/ (manual swap). */
 const N8N = {
-  checkUrl: 'https://miniveda.app.n8n.cloud/webhook/check-availability',
+  checkUrl: 'https://miniveda.app.n8n.cloud/webhook-test/check-availability',
   /* auto-confirmation endpoint for REGULAR hours. Leave empty until the n8n workflow that re-checks the
      range and creates the calendar event exists; while empty, regular-hour slots fall back to requests. */
   bookUrl: '',
