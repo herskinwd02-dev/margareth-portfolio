@@ -2887,7 +2887,7 @@ function DiscoveryBooking({ sheet = '07', mailto = '' }) {
   const submit = e => {
     e.preventDefault(); setTouched({ name: true, email: true });
     if (!formOk || status === 'busy') return;
-    if (form.company || Date.now() - t0.current < 3000) return; // honeypot / too fast
+    if (Date.now() - t0.current < 3000) return; // honeypot / too fast
     if (msgOnly) {
       const ref = `MC-${hash(form.email + form.service + Date.now()).toString(16).slice(0, 6).toUpperCase()}`;
       const summary = `Conversation request\nService: ${form.service}\nName: ${form.name.trim()}\nEmail: ${form.email.trim()}\n\n${form.message.trim() || '(no description yet)'}\n\nRef: ${ref}`;
