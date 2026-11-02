@@ -2714,8 +2714,10 @@ const N8N = {
   checkUrl: 'https://miniveda.app.n8n.cloud/webhook/check-availability',
   /* auto-confirmation endpoint for REGULAR hours. Leave empty until the n8n workflow that re-checks the
      range and creates the calendar event exists; while empty, regular-hour slots fall back to requests. */
-  bookUrl: 'https://miniveda.app.n8n.cloud/webhook/book-appointment', // production (workflow must be Active); test URL would be /webhook-test/
-  timeoutMs: 12000
+  // v23: TEST endpoint while the workflow is being verified (press "Listen for test event" in n8n first).
+  // Switch to production by changing /webhook-test/ → /webhook/ (workflow must be Active).
+  bookUrl: 'https://miniveda.app.n8n.cloud/webhook-test/book-appointment',
+  timeoutMs: 30000 // the booking workflow creates the event and sends two emails before it replies
 };
 const AUTO_CONFIRM_READY = !!N8N.bookUrl;
 /* v18: PRECHECK=false → every slot inside booking hours can be picked; no pre-check gates the visitor.
@@ -2725,8 +2727,10 @@ function parseBooking(json) {
   const j = Array.isArray(json) ? json[0] : json;
   if (!j || typeof j !== 'object') return null;
   const reason = j.reason || j.message || '';
-  if (j.confirmed === true || (typeof j.status === 'string' && /^(confirmed|booked|created)$/i.test(j.status))) return { state: 'confirmed', eventId: j.eventId || j.id || '', reason };
-  if (j.confirmed === false || j.available === false || (typeof j.status === 'string' && /^(conflict|busy|taken|unavailable)$/i.test(j.status))) return { state: 'busy', reason };
+  const yes = v => v === true || v === 'true' || v === 1;
+  if (yes(j.confirmed) || yes(j.success) || yes(j.booked) || (typeof j.status === 'string' && /^(confirmed|booked|created|success)$/i.test(j.status))) return { state: 'confirmed', eventId: j.eventId || j.id || (j.event && j.event.id) || '', reason };
+  const no = v => v === false || v === 'false' || v === 0;
+  if (no(j.confirmed) || no(j.available) || j.busy === true || (typeof j.status === 'string' && /^(conflict|busy|taken|unavailable)$/i.test(j.status))) return { state: 'busy', reason };
   return null;
 }
 async function bookSlot(payload) {
@@ -2744,7 +2748,7 @@ async function bookSlot(payload) {
     return { state: 'error', reason: e && e.name === 'AbortError' ? 'Booking timed out' : 'Booking endpoint unreachable' };
   } finally { clearTimeout(timer); }
 }
-const N8N_IS_TEST = /\/webhook-test\//.test(N8N.checkUrl);
+const N8N_IS_TEST = /\/webhook-test\//.test(N8N.checkUrl) || /\/webhook-test\//.test(N8N.bookUrl);
 /* accepted reply shapes (first array item is used when n8n returns an array):
    {available:true|false, reason?}  ·  {status:'available'|'conflict'|…}  ·  {busy:true|false}  ·  {conflicts:[…]} */
 function parseAvailability(json) {
@@ -2780,7 +2784,8 @@ async function checkAvailability(payload) {
 /* exact payload the workflow expects (field names preserved) */
 const checkPayload = (slot, duration, date, slotZone, form) => ({
   utc: slot.utc, duration, date: key(date), time: slot.label, end: slot.utc + duration * 60000, slotZone,
-  name: form.name.trim(), email: form.email.trim(), service: form.service || '', message: form.message.trim()
+  name: form.name.trim(), email: form.email.trim(), service: form.service || '', message: form.message.trim(),
+  startIso: new Date(slot.utc).toISOString(), endIso: new Date(slot.utc + duration * 60000).toISOString() // v23: additive, for calendar nodes
 });
 /* duplicate-submission memory (this browser) */
 const SENT_KEY = 'mc-sent-requests';
@@ -2878,7 +2883,7 @@ function Terminal({ data, links, onReset, confirmed }) {
     ['✓', `from       ${data.name} <${data.email}>`, 1],
     ['·', `notes      ${data.message ? data.message.slice(0, 48) + (data.message.length > 48 ? '…' : '') : '(none)'}`, 0],
     ['>', 'validating fields ........ ok', 0],
-    confirmed ? ['✓', 'calendar check (n8n) ..... done on booking', 1] : data.unverified ? ['·', 'calendar check (n8n) ..... skipped · confirmed by email', 0] : ['✓', 'calendar check (n8n) ..... period free', 1],
+    confirmed ? ['✓', 'calendar check (n8n) ..... done on booking', 1] : data.fallbackReason ? ['!', `auto-confirm (n8n) ....... no answer · ${data.fallbackReason}`, 0] : data.unverified ? ['·', 'calendar check (n8n) ..... skipped · confirmed by email', 0] : ['✓', 'calendar check (n8n) ..... period free', 1],
     confirmed ? ['✓', 'calendar event (n8n) ..... created · tentative hold', 1] : ['>', 'preparing email + .ics ... ok', 0],
     ['>', `ref        ${data.ref}${data.eventId ? '  ·  event ' + String(data.eventId).slice(0, 10) + '…' : ''}`, 2],
     confirmed ? ['■', 'BOOKED · CONFIRMED ON MY CALENDAR · an email summary is ready to send yourself', 3] : ['■', 'REQUEST PREPARED · PENDING CONFIRMATION · send it, I reply within one business day', 3]
@@ -2893,7 +2898,7 @@ function Terminal({ data, links, onReset, confirmed }) {
     h('div', { className: 'b-term' },
       h('ol', { 'aria-live': 'polite' }, lines.slice(0, n).map(([g, t, k], i) => h('li', { key: i, className: 'k' + k }, h('span', null, g), h('span', null, t))), !done ? h('li', { className: 'cur' }, h('span', null, '›'), h('i', null)) : null)),
     h('footer', { className: 'b-donef' },
-      h('span', null, data.kind === 'message' ? 'Nothing is sent by this page — use the email button and I reply within one business day.' : confirmed ? 'Confirmed. Add it to your calendar with the .ics; the email is optional.' : (data.unverified ? 'Not booked yet — send the request and I confirm the time by email, usually within one business day.' : 'Not booked yet — the slot was free when checked. Send the request; it is confirmed only when I reply.')),
+      h('span', null, data.kind === 'message' ? 'Nothing is sent by this page — use the email button and I reply within one business day.' : confirmed ? 'Confirmed. Add it to your calendar with the .ics; the email is optional.' : (data.fallbackReason ? `Automatic confirmation didn\u2019t answer (${data.fallbackReason}). Not booked yet — send the request and I confirm the time by email.` : data.unverified ? 'Not booked yet — send the request and I confirm the time by email, usually within one business day.' : 'Not booked yet — the slot was free when checked. Send the request; it is confirmed only when I reply.')),
       h('span', { className: 'b-acts' },
         h('a', { href: links.mailto, className: 'b-btn pri' }, h(Ic.Mail, { size: 12 }), data.kind === 'message' ? ' Send message' : ' Send by email'),
         links.icsUrl ? h('a', { href: links.icsUrl, download: links.icsName, className: 'b-btn' }, h(Ic.Calendar, { size: 12 }), ' Download .ics') : null,
@@ -2954,9 +2959,9 @@ function DiscoveryBooking({ sheet = '07', mailto = '' }) {
     return res;
   };
   useEffect(() => { if (PRECHECK && slot && !av && !isChecking) runCheck(slot); }, [slot && slot.utc, duration]);
-  const alreadySent = PRECHECK && !!slot && sent.includes(slot.utc);
+  const alreadySent = !!slot && sent.includes(slot.utc); // booked/requested from this browser → blocked
   const msgOnly = !slot; // no time picked → plain conversation
-  const isAuto = !!slot && slot.mode === 'auto' && AUTO_CONFIRM_READY && !(confirmed && confirmed.state === 'fallback');
+  const isAuto = !!slot && slot.mode === 'auto' && AUTO_CONFIRM_READY; // v23: every auto slot always tries n8n first
   const pickSlot = s => { if (s.mode === 'request') { setAsk(s); } else setTime(s.utc); };
   const canSend = !!slot && (!PRECHECK || (!!av && (av.state === 'free' || av.state === 'error'))) && !alreadySent; /* v17: unreachable checker → request path, never an error for the visitor */
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email), nameOk = form.name.trim().length > 1, formOk = emailOk && nameOk;
@@ -2996,8 +3001,9 @@ function DiscoveryBooking({ sheet = '07', mailto = '' }) {
           setNotice('That time was taken just now — the calendar is refreshed, please pick another slot.'); setStatus('idle');
         } else {
           /* v17: server unreachable → finish as a request (email + .ics), no error shown; overlaps are handled on the n8n side */
-          setConfirmed({ state: 'fallback' }); setNotice('Sent as a request \u2014 I confirm by email.');
-          setLinks(onBook(payload)); setBooked(payload); rememberSent(slot.utc); setSent(sentList()); setStatus('done');
+          setConfirmed({ state: 'fallback', reason: res.reason }); setNotice(`Automatic confirmation didn\u2019t answer (${res.reason}), so this was sent as a request \u2014 I confirm by email.`);
+          const pf = { ...payload, fallbackReason: res.reason };
+          setLinks(onBook(pf)); setBooked(pf); rememberSent(slot.utc); setSent(sentList()); setStatus('done');
         }
       })();
       return;
@@ -3035,7 +3041,7 @@ function DiscoveryBooking({ sheet = '07', mailto = '' }) {
         h(Fig, { no: '2', title: 'Time', className: !date ? 'dim' : '', right: date ? `${day.slots.length} open · ${zAbbr(slotZone, date)} → ${zAbbr(myZone, date)}` : 'awaiting FIG 1' },
           h(Overlap, { date, slotZone, myZone }),
           !date ? h('p', { className: 'b-empty' }, h(Ic.Lock, { size: 12 }), ' Pick a date to load times inside my working window') :
-          day.slots.length ? h(React.Fragment, null, h('div', { className: 'b-slots', role: 'listbox', 'aria-label': 'Candidate time slots (verified when selected)' }, day.slots.map((s, i) => { const a = avail[akey(s)]; const st = !PRECHECK ? '' : checking === akey(s) ? 'checking' : sent.includes(s.utc) ? 'sent' : a ? a.state : ''; return h('button', { key: s.utc, type: 'button', role: 'option', 'aria-selected': s.utc === time, disabled: st === 'busy' || st === 'sent', 'aria-label': `${s.label} ${zAbbr(slotZone, date)}${st === 'busy' ? ', already booked' : st === 'sent' ? ', request already sent' : st === 'free' ? ', free on calendar' : ', not yet checked'}`, onClick: () => pickSlot(s), className: 'b-slot ' + st + (s.utc === time ? ' on' : '') + (s.mode === 'request' ? ' req' : ''), style: { '--i': i }, title: `${s.pht} PHT${s.mode === 'request' ? ' · on request' : ''}` }, h('b', null, s.label), h('span', { className: 'arr' }, '\u2192'), h('span', null, st === 'busy' ? 'booked' : st === 'sent' ? 'sent' : slotZone === myZone ? s.end : myOf(s)), s.mode === 'request' ? h('em', { className: 'b-reqtag', 'aria-label': 'needs personal confirmation' }, 'req') : null); })),
+          day.slots.length ? h(React.Fragment, null, h('div', { className: 'b-slots', role: 'listbox', 'aria-label': 'Candidate time slots (verified when selected)' }, day.slots.map((s, i) => { const a = avail[akey(s)]; const st = sent.includes(s.utc) ? 'sent' : !PRECHECK ? '' : checking === akey(s) ? 'checking' : a ? a.state : ''; return h('button', { key: s.utc, type: 'button', role: 'option', 'aria-selected': s.utc === time, disabled: st === 'busy' || st === 'sent', 'aria-label': `${s.label} ${zAbbr(slotZone, date)}${st === 'busy' ? ', already booked' : st === 'sent' ? ', request already sent' : st === 'free' ? ', free on calendar' : ', not yet checked'}`, onClick: () => pickSlot(s), className: 'b-slot ' + st + (s.utc === time ? ' on' : '') + (s.mode === 'request' ? ' req' : ''), style: { '--i': i }, title: `${s.pht} PHT${s.mode === 'request' ? ' · on request' : ''}` }, h('b', null, s.label), h('span', { className: 'arr' }, '\u2192'), h('span', null, st === 'busy' ? 'booked' : st === 'sent' ? 'sent' : slotZone === myZone ? s.end : myOf(s)), s.mode === 'request' ? h('em', { className: 'b-reqtag', 'aria-label': 'needs personal confirmation' }, 'req') : null); })),
             h('div', { className: 'b-avail ' + (isChecking ? 'checking' : av ? (av.state === 'error' ? 'pending' : av.state) : ''), role: 'status', 'aria-live': 'polite' },
               !slot ? h('span', null, h('i', { className: 'b-node' }), ' Pick a time for a call, or skip this and send a message below') :
               isChecking ? h('span', null, h('i', { className: 'b-spin' }), ` Checking ${slot.label} ${zAbbr(slotZone, date)} (${duration} min) against my calendar\u2026`) :
@@ -3055,7 +3061,7 @@ function DiscoveryBooking({ sheet = '07', mailto = '' }) {
               h('label', { className: 'b-hp', 'aria-hidden': 'true' }, 'Company', h('input', { tabIndex: -1, autoComplete: 'off', value: form.company, onChange: e => setForm({ ...form, company: e.target.value }) }))),
             h('div', { className: 'b-act' }, summaryStrip,
               notice ? h('p', { className: 'b-notice', role: 'status' }, notice) : null,
-              h('button', { type: 'submit', disabled: status === 'busy' || isChecking || alreadySent || (av && av.state === 'busy'), className: 'b-book' + (formOk && (msgOnly || canSend) ? ' ready' : '') }, h('small', null, 'FIG 4'), status === 'busy' ? 'Preparing\u2026' : msgOnly ? 'Start a Conversation' : isChecking ? 'Checking calendar\u2026' : alreadySent ? 'Request already sent' : av && av.state === 'busy' ? 'Slot taken' : av && av.state === 'error' ? 'Retry calendar check' : isAuto ? 'Book this slot' : 'Request this time', h(Ic.ArrowRight, { size: 15 }))))))),
+              h('button', { type: 'submit', disabled: status === 'busy' || isChecking || alreadySent || (av && av.state === 'busy'), className: 'b-book' + (formOk && (msgOnly || canSend) ? ' ready' : '') }, h('small', null, 'FIG 4'), status === 'busy' ? (isAuto && !msgOnly ? 'Confirming on the calendar\u2026' : 'Preparing\u2026') : msgOnly ? 'Start a Conversation' : isChecking ? 'Checking calendar\u2026' : alreadySent ? 'Already booked from this browser' : av && av.state === 'busy' ? 'Slot taken' : av && av.state === 'error' ? 'Retry calendar check' : isAuto ? 'Book this slot' : 'Request this time', h(Ic.ArrowRight, { size: 15 }))))))),
     ask ? h('div', { className: 'b-modal', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'bkAskT' },
       h('div', { className: 'b-modal-c' },
         h('p', { className: 'b-k' }, h('i', { className: 'b-node on' }), ' Appointment request'),
