@@ -1591,6 +1591,9 @@ footer.foot .foot-end{margin-top:12px;font-size:11px}
 .b-slot.free::after{content:"";position:absolute;right:4px;top:4px;width:5px;height:5px;border-radius:50%;background:var(--bs)}
 .b-slot{position:relative}
 .b-slot.checking{border-style:dashed;animation:bPulse 1s ease-in-out infinite}
+.b-slot.error{opacity:.48;cursor:not-allowed;border-style:dashed}
+.b-day.off.booked{background:repeating-linear-gradient(45deg,rgba(210,100,58,.05) 0 4px,rgba(210,100,58,.14) 4px 5px);color:var(--signal-ink,#A44A23)}
+.b-day.off.booked.sel{background:repeating-linear-gradient(45deg,rgba(210,100,58,.08) 0 4px,rgba(210,100,58,.18) 4px 5px)!important;color:var(--signal-ink,#A44A23)!important;box-shadow:inset 0 0 0 2px var(--signal,#D2643A)}
 .b-slot.busy,.b-slot.sent{color:color-mix(in srgb,var(--ink) 35%,transparent);border-style:dashed;background:repeating-linear-gradient(135deg,transparent 0 5px,color-mix(in srgb,var(--ink) 5%,transparent) 5px 6px);text-decoration:line-through;cursor:not-allowed}
 .b-slot.busy:hover,.b-slot.sent:hover{transform:none;box-shadow:none;background:repeating-linear-gradient(135deg,transparent 0 5px,color-mix(in srgb,var(--ink) 5%,transparent) 5px 6px)}
 .b-slot.busy span:last-child,.b-slot.sent span:last-child{text-decoration:none;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase}
@@ -2854,7 +2857,7 @@ const Fig = ({ no, title, right, children, className = '' }) => h('section', { c
 const Sel = props => h('select', { ...props, className: 'b-sel ' + (props.className || '') });
 
 /* ---------- calendar ---------- */
-function Calendar({ value, onChange, slotZone, now }) {
+function Calendar({ value, onChange, slotZone, now, blockedDateKey = null }) {
   const today = utcToWall(now, slotZone);
   const first = new Date(today.y, today.mo, today.d);
   const [cur, setCur] = useState(() => {
@@ -2872,7 +2875,7 @@ function Calendar({ value, onChange, slotZone, now }) {
   const prevOk = new Date(cur.getFullYear(), cur.getMonth(), 0) >= new Date(first.getFullYear(), first.getMonth(), 1);
   const nextOk = new Date(cur.getFullYear(), cur.getMonth() + 1, 1) <= maxD;
   const go = n => { setDir(n); setCur(new Date(cur.getFullYear(), cur.getMonth() + n, 1)); };
-  const openCount = cells.filter(c => c.st.open && c.d.getMonth() === cur.getMonth()).length;
+  const openCount = cells.filter(c => c.st.open && key(c.d) !== blockedDateKey && c.d.getMonth() === cur.getMonth()).length;
   return h('div', { className: 'b-cal' },
     h('div', { className: 'b-calh' },
       h('button', { type: 'button', className: 'b-nav', onClick: () => go(-1), disabled: !prevOk, 'aria-label': 'Previous month' }, h(Ic.ChevronLeft, { size: 14 })),
@@ -2880,7 +2883,11 @@ function Calendar({ value, onChange, slotZone, now }) {
       h('button', { type: 'button', className: 'b-nav', onClick: () => go(1), disabled: !nextOk, 'aria-label': 'Next month' }, h(Ic.ChevronRight, { size: 14 }))),
     h('div', { key: cur.getFullYear() * 12 + cur.getMonth(), className: 'b-grid ' + (dir > 0 ? 'in-r' : dir < 0 ? 'in-l' : 'in-0'), role: 'grid', 'aria-label': 'Calendar' },
       DOW.map(d => h('span', { key: d, role: 'columnheader', className: 'b-dow' }, d)),
-      cells.map(({ d, st }, i) => {
+      cells.map(({ d, st: baseStatus }, i) => {
+        // A selected date is marked blocked only after the GET checker confirms no free slots.
+        const st = baseStatus.open && key(d) === blockedDateKey
+          ? { ...baseStatus, open: false, code: 'booked', reason: 'No available times on Google Calendar' }
+          : baseStatus;
         const inMonth = d.getMonth() === cur.getMonth(), sel = sameDay(d, value), isToday = key(d) === today.key;
         const cls = ['b-day', inMonth ? '' : 'out', st.open ? 'open' : 'off ' + st.code, sel ? 'sel' : '', isToday ? 'today' : ''].join(' ');
         const label = `${fmtLong(d)}${st.open ? `, ${st.count} slots` : ', ' + st.reason}`;
@@ -2996,51 +3003,78 @@ function DiscoveryBooking({ sheet = '07', mailto = '' }) {
   useEffect(() => { window.mcBookingTopic = t => setForm(f => ({ ...f, service: /fiber|design|qc|document|engineer|osp|ftth/i.test(String(t)) ? SERVICES[1] : SERVICES[0] })); return () => { delete window.mcBookingTopic; }; }, []);
   const day = useMemo(() => date ? slotsFor(date, duration, slotZone) : { slots: [], blocked: [] }, [date, duration, slotZone]);
   
-const [calendarDays, setCalendarDays] = useState({
-  status: 'idle',
-  data: {}
-});
-
-useEffect(() => {
-  if (!date || !day.slots.length) {
-    setCalendarDays({ status: 'idle', data: {} });
-    return;
-  }
-
-  let cancelled = false;
-
-  // Find the Philippine dates covered by the displayed slots.
-  const dates = [...new Set(day.slots.flatMap(s => [
+  // Task 1: one GET check per Philippine date covered by the displayed slots.
+  // The request key prevents an earlier date's results from unlocking a newly selected date.
+  const [calendarDays, setCalendarDays] = useState({ status: 'idle', requestKey: '', data: {}, checkedAt: 0 });
+  const [calendarRefresh, setCalendarRefresh] = useState(0);
+  const availabilityRequestKey = date ? `${key(date)}|${duration}|${slotZone}` : '';
+  const availabilityDates = useMemo(() => [...new Set(day.slots.flatMap(s => [
     utcToWall(s.utc, AVAIL.zone).key,
     utcToWall(s.utc + duration * 60000 - 1, AVAIL.zone).key
-  ]))];
+  ]))], [day, duration]);
 
-  setCalendarDays({ status: 'loading', data: {} });
-
-  Promise.all(dates.map(fetchDayAvailability))
-    .then(results => {
-      if (cancelled) return;
-      setCalendarDays({
-        status: 'ready',
-        data: Object.fromEntries(results.map(r => [r.date, r]))
+  useEffect(() => {
+    if (!date || !availabilityDates.length) {
+      setCalendarDays({ status: 'idle', requestKey: '', data: {}, checkedAt: 0 });
+      return;
+    }
+    let cancelled = false;
+    setCalendarDays({ status: 'loading', requestKey: availabilityRequestKey, data: {}, checkedAt: 0 });
+    Promise.all(availabilityDates.map(fetchDayAvailability))
+      .then(results => {
+        if (!cancelled) setCalendarDays({
+          status: 'ready',
+          requestKey: availabilityRequestKey,
+          data: Object.fromEntries(results.map(r => [r.date, r])),
+          checkedAt: Date.now()
+        });
+      })
+      .catch(error => {
+        console.error('Calendar loading failed:', error);
+        if (!cancelled) setCalendarDays({ status: 'error', requestKey: availabilityRequestKey, data: {}, checkedAt: 0 });
       });
-    })
-    .catch(error => {
-      console.error('Calendar loading failed:', error);
-      if (!cancelled) {
-        setCalendarDays({ status: 'error', data: {} });
-      }
-    });
-
-  return () => { cancelled = true; };
-}, [day, duration]);
+    return () => { cancelled = true; };
+  }, [availabilityRequestKey, availabilityDates, calendarRefresh]);
   
   useEffect(() => { setTime(t => t != null && day.slots.some(s => s.utc === t) ? t : null); }, [day]);
   useEffect(() => { if (date && !dayStatus(date, slotZone, now).open) setDate(null); }, [slotZone]);
   const slot = day.slots.find(s => s.utc === time);
   const akey = s => `${s.utc}|${duration}`;
-  const av = slot ? avail[akey(slot)] : null;
-  const isChecking = !!slot && checking === akey(slot);
+  const calendarReady = calendarDays.requestKey === availabilityRequestKey && calendarDays.status === 'ready';
+  const calendarFailed = calendarDays.requestKey === availabilityRequestKey && calendarDays.status === 'error';
+  // Determine whether a whole appointment overlaps any busy range (including midnight and all-day events).
+  const slotAvailability = s => {
+    if (!s) return null;
+    const direct = avail[akey(s)]; // Preserve a more recent booking conflict or manual recheck.
+    if (direct && direct.state === 'busy') return direct;
+    if (!calendarReady) return { state: calendarFailed ? 'error' : 'checking', reason: calendarFailed ? 'Calendar unavailable' : 'Checking Google Calendar' };
+    try {
+      const from = s.utc, to = s.utc + duration * 60000;
+      const dates = [...new Set([utcToWall(from, AVAIL.zone).key, utcToWall(to - 1, AVAIL.zone).key])];
+      const isBusy = dates.some(d => {
+        const info = calendarDays.data[d];
+        if (!info || !Array.isArray(info.busyPeriods) || typeof info.allDayBlocked !== 'boolean') {
+          throw new Error('Incomplete availability response');
+        }
+        return info.allDayBlocked || info.busyPeriods.some(p => {
+          const start = Date.parse(p.start), end = Date.parse(p.end);
+          if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+            throw new Error('Invalid busy period');
+          }
+          return start < to && end > from;
+        });
+      });
+      if (isBusy) return { state: 'busy', reason: 'Already booked on Google Calendar', at: calendarDays.checkedAt };
+      if (direct && direct.at > calendarDays.checkedAt) return direct;
+      return { state: 'free', reason: '', at: calendarDays.checkedAt };
+    } catch (error) {
+      console.error('Unable to read availability:', error);
+      return { state: 'error', reason: 'Could not verify the calendar' };
+    }
+  };
+  const av = slot ? slotAvailability(slot) : null;
+  const calendarFullyBlocked = calendarReady && day.slots.length > 0 && day.slots.every(s => slotAvailability(s).state === 'busy');
+  const isChecking = !!slot && (checking === akey(slot) || (av && av.state === 'checking'));
   const runCheck = async s => {
     const k = akey(s), my = ++seq.current;
     setChecking(k); setNotice('');
@@ -3050,12 +3084,18 @@ useEffect(() => {
     setChecking(null);
     return res;
   };
-  useEffect(() => { if (PRECHECK && slot && !av && !isChecking) runCheck(slot); }, [slot && slot.utc, duration]);
+  // If a newly loaded calendar says the selected slot became busy, deselect it safely.
+  useEffect(() => {
+    if (PRECHECK && slot && calendarReady && slotAvailability(slot).state === 'busy') {
+      setTime(null);
+      setNotice('That appointment is occupied on Google Calendar. Please choose a free time.');
+    }
+  }, [calendarDays, slot && slot.utc, duration]);
   const alreadySent = !!slot && sent.includes(slot.utc); // booked/requested from this browser → blocked
   const msgOnly = !slot; // no time picked → plain conversation
   const isAuto = !!slot && slot.mode === 'auto' && AUTO_CONFIRM_READY; // v23: every auto slot always tries n8n first
   const pickSlot = s => { if (s.mode === 'request') { setAsk(s); } else setTime(s.utc); };
-  const canSend = !!slot && (!PRECHECK || (!!av && (av.state === 'free' || av.state === 'error'))) && !alreadySent; /* v17: unreachable checker → request path, never an error for the visitor */
+  const canSend = !!slot && (!PRECHECK || (calendarReady && !!av && av.state === 'free')) && !alreadySent; // Never advertise unverified slots as available.
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email), nameOk = form.name.trim().length > 1, formOk = emailOk && nameOk;
   const step = status === 'done' ? 4 : slot ? (!av || av.state !== 'free' ? 2 : !formOk ? 3 : 4) : (formOk ? 4 : date ? 2 : 3);
   const myOf = s => { const w = utcToWall(s.utc, myZone); const d0 = utcToWall(s.utc, slotZone); const sh = w.key === d0.key ? '' : w.key > d0.key ? ' +1d' : ' −1d'; return mm(w.min) + sh; };
@@ -3072,7 +3112,10 @@ useEffect(() => {
       return;
     }
     if (alreadySent) { setNotice('You already sent a request for this slot from this browser.'); return; }
-    if (PRECHECK && (!av || (av.state !== 'free' && av.state !== 'error'))) { runCheck(slot); return; }
+    if (PRECHECK && (!calendarReady || !av || av.state !== 'free')) {
+      setNotice('Please wait for the live calendar check, or retry if it is unavailable.');
+      return;
+    }
     if (PRECHECK && av.state === 'free' && Date.now() - av.at > 5 * 60000) { setNotice('Re-checking the calendar\u2026'); runCheck(slot); return; } // stale check → verify again first
     const abbr = zAbbr(slotZone, date);
     const ref = `MC-${hash(key(date) + slot.label + form.email).toString(16).slice(0, 6).toUpperCase()}`;
@@ -3127,21 +3170,38 @@ useEffect(() => {
     h('div', { className: 'b-body' },
       h('div', { className: 'b-left' },
         h(Fig, { no: '1', title: 'Date', right: date ? fmtShort(date) : 'pick a weekday' },
-          h(Calendar, { value: date, onChange: setDate, slotZone, now }),
+          h(Calendar, { value: date, onChange: setDate, slotZone, now, blockedDateKey: calendarFullyBlocked ? key(date) : null }),
           h('div', { className: 'b-dur' }, h('span', null, 'Length'), DURATIONS.map(d => h('button', { key: d, type: 'button', 'aria-pressed': d === duration, onClick: () => setDuration(d), className: 'b-chip' + (d === duration ? ' on' : '') }, d, h('small', null, 'min'))), h('em', null, duration === 15 ? 'default' : `+${AVAIL.bufferMin} min buffer`)))),
       h('div', { className: 'b-right' },
-        h(Fig, { no: '2', title: 'Time', className: !date ? 'dim' : '', right: date ? `${day.slots.length} open · ${zAbbr(slotZone, date)} → ${zAbbr(myZone, date)}` : 'awaiting FIG 1' },
+        h(Fig, { no: '2', title: 'Time', className: !date ? 'dim' : '', right: date ? `${calendarReady ? day.slots.filter(s => slotAvailability(s).state === 'free').length + ' free' : calendarFailed ? 'Calendar unavailable' : 'Checking calendar'} · ${zAbbr(slotZone, date)} → ${zAbbr(myZone, date)}` : 'awaiting FIG 1' },
           h(Overlap, { date, slotZone, myZone }),
           !date ? h('p', { className: 'b-empty' }, h(Ic.Lock, { size: 12 }), ' Pick a date to load times inside my working window') :
-          day.slots.length ? h(React.Fragment, null, h('div', { className: 'b-slots', role: 'listbox', 'aria-label': 'Candidate time slots (verified when selected)' }, day.slots.map((s, i) => { const a = avail[akey(s)]; const st = sent.includes(s.utc) ? 'sent' : !PRECHECK ? '' : checking === akey(s) ? 'checking' : a ? a.state : ''; return h('button', { key: s.utc, type: 'button', role: 'option', 'aria-selected': s.utc === time, disabled: st === 'busy' || st === 'sent', 'aria-label': `${s.label} ${zAbbr(slotZone, date)}${st === 'busy' ? ', already booked' : st === 'sent' ? ', request already sent' : st === 'free' ? ', free on calendar' : ', not yet checked'}`, onClick: () => pickSlot(s), className: 'b-slot ' + st + (s.utc === time ? ' on' : '') + (s.mode === 'request' ? ' req' : ''), style: { '--i': i }, title: `${s.pht} PHT${s.mode === 'request' ? ' · on request' : ''}` }, h('b', null, s.label), h('span', { className: 'arr' }, '\u2192'), h('span', null, st === 'busy' ? 'booked' : st === 'sent' ? 'sent' : slotZone === myZone ? s.end : myOf(s)), s.mode === 'request' ? h('em', { className: 'b-reqtag', 'aria-label': 'needs personal confirmation' }, 'req') : null); })),
+          day.slots.length ? h(React.Fragment, null, h('div', { className: 'b-slots', role: 'listbox', 'aria-label': 'Google Calendar verified appointment slots' }, day.slots.map((s, i) => {
+            const a = slotAvailability(s);
+            const st = sent.includes(s.utc) ? 'sent' : !PRECHECK ? '' : checking === akey(s) ? 'checking' : a.state;
+            const unavailable = st === 'busy' || st === 'sent' || st === 'checking' || st === 'error';
+            const descriptor = st === 'busy' ? 'already booked' : st === 'sent' ? 'request already sent' : st === 'free' ? 'free on calendar' : st === 'error' ? 'calendar unavailable' : 'checking calendar';
+            return h('button', {
+              key: s.utc, type: 'button', role: 'option', 'aria-selected': s.utc === time,
+              disabled: unavailable,
+              'aria-label': `${s.label} ${zAbbr(slotZone, date)}, ${descriptor}`,
+              onClick: () => pickSlot(s), className: 'b-slot ' + st + (s.utc === time ? ' on' : '') + (s.mode === 'request' ? ' req' : ''),
+              style: { '--i': i }, title: `${s.pht} PHT${s.mode === 'request' ? ' · on request' : ''}`
+            }, h('b', null, s.label), h('span', { className: 'arr' }, '\u2192'),
+              h('span', null, st === 'busy' ? 'booked' : st === 'sent' ? 'sent' : st === 'checking' ? 'checking' : st === 'error' ? 'unavailable' : slotZone === myZone ? s.end : myOf(s)),
+              s.mode === 'request' ? h('em', { className: 'b-reqtag', 'aria-label': 'needs personal confirmation' }, 'req') : null);
+          })),
             h('div', { className: 'b-avail ' + (isChecking ? 'checking' : av ? (av.state === 'error' ? 'pending' : av.state) : ''), role: 'status', 'aria-live': 'polite' },
-              !slot ? h('span', null, h('i', { className: 'b-node' }), ' Pick a time for a call, or skip this and send a message below') :
+              !slot ? calendarFailed ? h('span', null, h('i', { className: 'b-node err' }), ' Could not load Google Calendar. No appointment slots can be booked until verified. ', h('button', { type: 'button', className: 'b-link', onClick: () => setCalendarRefresh(n => n + 1) }, 'Retry')) :
+              calendarFullyBlocked ? h('span', null, h('i', { className: 'b-node busy' }), ' This date has no available appointment times. Please choose another date.') :
+              !calendarReady && date ? h('span', null, h('i', { className: 'b-spin' }), ' Checking available times on Google Calendar…') :
+              h('span', null, h('i', { className: 'b-node' }), ' Pick a free time for a call, or skip this and send a message below') :
               isChecking ? h('span', null, h('i', { className: 'b-spin' }), ` Checking ${slot.label} ${zAbbr(slotZone, date)} (${duration} min) against my calendar\u2026`) :
               alreadySent ? h('span', null, h('i', { className: 'b-node on' }), ' You already sent a request for this slot') :
               !PRECHECK ? h('span', null, h('i', { className: 'b-node on' }), ` ${slot.label}\u2013${slot.end} ${zAbbr(slotZone, date)} selected \u00B7 ${isAuto ? 'confirmed automatically when you send' : 'sent as a request for my confirmation'}`) :
               av && av.state === 'free' ? h('span', null, h(Ic.Check, { size: 12, strokeWidth: 3 }), ` ${slot.label}\u2013${slot.end} ${zAbbr(slotZone, date)} is free on my calendar \u00B7 ${isAuto ? 'confirmed on booking' : slot.mode === 'request' ? 'sent as a request for my approval' : 'you can send the request'}`) :
               av && av.state === 'busy' ? h('span', null, h('i', { className: 'b-node busy' }), ` ${slot.label} ${zAbbr(slotZone, date)} is already booked${av.reason ? ' \u00B7 ' + av.reason : ''} \u2014 pick another time, or `, h('button', { type: 'button', className: 'b-link', onClick: () => setTime(null) }, 'send a message instead')) :
-              av && av.state === 'error' ? h('span', null, h('i', { className: 'b-node on' }), ` ${slot.label}\u2013${slot.end} ${zAbbr(slotZone, date)} selected \u00B7 the live calendar check is unavailable right now, so this will be sent as a request and confirmed by email`) : null))
+              av && av.state === 'error' ? h('span', null, h('i', { className: 'b-node err' }), ' Calendar check unavailable. Please try again; appointments are temporarily disabled. ', h('button', { type: 'button', className: 'b-link', onClick: () => setCalendarRefresh(n => n + 1) }, 'Retry')) : null))
           : h('p', { className: 'b-empty' }, day.blocked.length ? `Regular holiday · ${day.blocked[0]}` : 'No overlap with my working window on this date')),
         h('form', { className: 'b-form', onSubmit: submit, noValidate: true },
           h(Fig, { no: '3', title: 'Details', right: canSend ? `${fmtShort(date)} · ${slot.label} ${zAbbr(slotZone, date)} · free` : slot ? 'awaiting calendar check' : 'message only' },
@@ -3153,7 +3213,7 @@ useEffect(() => {
               h('label', { className: 'b-hp', 'aria-hidden': 'true' }, 'Company', h('input', { tabIndex: -1, autoComplete: 'off', value: form.company, onChange: e => setForm({ ...form, company: e.target.value }) }))),
             h('div', { className: 'b-act' }, summaryStrip,
               notice ? h('p', { className: 'b-notice', role: 'status' }, notice) : null,
-              h('button', { type: 'submit', disabled: status === 'busy' || isChecking || alreadySent || (av && av.state === 'busy'), className: 'b-book' + (formOk && (msgOnly || canSend) ? ' ready' : '') }, h('small', null, 'FIG 4'), status === 'busy' ? (isAuto && !msgOnly ? 'Confirming on the calendar\u2026' : 'Preparing\u2026') : msgOnly ? 'Start a Conversation' : isChecking ? 'Checking calendar\u2026' : alreadySent ? 'Already booked from this browser' : av && av.state === 'busy' ? 'Slot taken' : av && av.state === 'error' ? 'Retry calendar check' : isAuto ? 'Book this slot' : 'Request this time', h(Ic.ArrowRight, { size: 15 }))))))),
+              h('button', { type: 'submit', disabled: status === 'busy' || isChecking || alreadySent || (!!slot && PRECHECK && !canSend), className: 'b-book' + (formOk && (msgOnly || canSend) ? ' ready' : '') }, h('small', null, 'FIG 4'), status === 'busy' ? (isAuto && !msgOnly ? 'Confirming on the calendar\u2026' : 'Preparing\u2026') : msgOnly ? 'Start a Conversation' : isChecking ? 'Checking calendar\u2026' : alreadySent ? 'Already booked from this browser' : av && av.state === 'busy' ? 'Slot taken' : av && av.state === 'error' ? 'Retry calendar check' : isAuto ? 'Book this slot' : 'Request this time', h(Ic.ArrowRight, { size: 15 }))))))),
     ask ? h('div', { className: 'b-modal', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'bkAskT' },
       h('div', { className: 'b-modal-c' },
         h('p', { className: 'b-k' }, h('i', { className: 'b-node on' }), ' Appointment request'),
