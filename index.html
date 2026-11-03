@@ -2689,21 +2689,13 @@ function dayStatus(D, slotZone, now) {
   return { open: true, code: 'open', reason: '', count: slots.length, holiday: blocked[0] || null, regular: slots.filter(s => s.mode === 'auto').length };
 }
 
-/* ---------- INTEGRATION SEAM ----------
-   Every submit goes through onBook(payload). Today it prepares an email and an .ics file on the
-   client. Later the same payload can be POSTed to a webhook (n8n / Make) that writes a sheet row
-   and a tentative calendar hold; double-booking checks against the live calendar belong to that
-   webhook step, not to this page. The confirmation is still sent by a person. (See Lab · EXP-05.) */
+/* ---------- RESULT LINKS ----------
+   Appointments are booked by bookSlot(payload) → n8n book-appointment (calendar check, event, emails).
+   The page prepares no email and no .ics for appointments; a booking is shown as confirmed only when
+   n8n answers confirmed. onBook() now only builds the optional summary text for the message-only mode. */
 function onBook(payload) {
-  if (payload.kind === 'message') return { mailto: `mailto:${payload.mailto}?subject=${encodeURIComponent(`Conversation · ${payload.service} · ${payload.name.trim()}`)}&body=${encodeURIComponent(payload.summary)}`, icsUrl: '', icsName: '' };
-  const esc = s => String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
-  const stamp = d => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
-  const start = new Date(payload.utc), end = new Date(payload.utc + payload.duration * 60000);
-  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Margareth Condes//Discovery call request//EN', 'METHOD:REQUEST', 'BEGIN:VEVENT', `UID:${payload.ref}@margarethcondes`, `DTSTAMP:${stamp(new Date())}`, `DTSTART:${stamp(start)}`, `DTEND:${stamp(end)}`, `SUMMARY:${esc((payload.confirmed ? '' : '[Pending] ') + 'Discovery call · Margareth Condes' + (payload.service ? ' · ' + payload.service : ''))}`, `DESCRIPTION:${esc(payload.summary)}`, payload.confirmed ? 'STATUS:CONFIRMED' : 'STATUS:TENTATIVE', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
-  let icsUrl = '';
-  try { icsUrl = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' })); } catch (e) {}
-  const mailto = `mailto:${payload.mailto}?subject=${encodeURIComponent(`Discovery call ${payload.confirmed ? 'confirmed' : 'request'} · ${payload.service || 'open conversation'} · ${fmtShort(payload.date)} ${payload.time} ${payload.abbr}`)}&body=${encodeURIComponent(payload.summary)}`;
-  return { mailto, icsUrl, icsName: `discovery-call-${key(payload.date)}-${payload.time.replace(':', '')}.ics` };
+  if (payload.kind === 'message') return { summary: payload.summary };
+  return {}; /* appointment: nothing to prepare on the client */
 }
 
 /* ---------- n8n availability check (READ-ONLY) ----------
@@ -2871,7 +2863,7 @@ function Terminal({ data, links, onReset, confirmed }) {
     ['✓', `service    ${data.service}`, 1],
     ['✓', `from       ${data.name} <${data.email}>`, 1],
     ['·', `brief      ${data.message ? data.message.slice(0, 56) + (data.message.length > 56 ? '…' : '') : '(none)'}`, 0],
-    ['>', 'preparing email ........... ok', 0],
+    ['>', 'preparing message ......... ok', 0],
     ['>', `ref        ${data.ref}`, 2],
     ['■', 'MESSAGE PREPARED · send it, I reply within one business day', 3]
   ] : [
@@ -2884,9 +2876,9 @@ function Terminal({ data, links, onReset, confirmed }) {
     ['·', `notes      ${data.message ? data.message.slice(0, 48) + (data.message.length > 48 ? '…' : '') : '(none)'}`, 0],
     ['>', 'validating fields ........ ok', 0],
     confirmed ? ['✓', 'calendar check (n8n) ..... done on booking', 1] : data.fallbackReason ? ['!', `auto-confirm (n8n) ....... no answer · ${data.fallbackReason}`, 0] : data.unverified ? ['·', 'calendar check (n8n) ..... skipped · confirmed by email', 0] : ['✓', 'calendar check (n8n) ..... period free', 1],
-    confirmed ? ['✓', 'calendar event (n8n) ..... created · tentative hold', 1] : ['>', 'preparing email + .ics ... ok', 0],
+    confirmed ? ['✓', 'calendar event (n8n) ..... created', 1] : ['!', 'calendar event (n8n) ..... not confirmed', 0],
     ['>', `ref        ${data.ref}${data.eventId ? '  ·  event ' + String(data.eventId).slice(0, 10) + '…' : ''}`, 2],
-    confirmed ? ['■', 'BOOKED · CONFIRMED ON MY CALENDAR · an email summary is ready to send yourself', 3] : ['■', 'REQUEST PREPARED · PENDING CONFIRMATION · send it, I reply within one business day', 3]
+    confirmed ? ['■', 'BOOKED · CONFIRMED ON MY CALENDAR · confirmation email on its way to you', 3] : ['■', 'NOT CONFIRMED · nothing was booked · please try again later', 3]
   ], [data, confirmed]);
   const [n, setN] = useState(0);
   useEffect(() => { setN(0); let i = 0; const t = setInterval(() => { i++; setN(i); if (i >= lines.length) clearInterval(t); }, 210); return () => clearInterval(t); }, [lines]);
@@ -2894,14 +2886,12 @@ function Terminal({ data, links, onReset, confirmed }) {
   const [copied, setCopied] = useState(false);
   const copy = () => { try { navigator.clipboard.writeText(data.summary).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }); } catch (e) {} };
   return h('div', { className: 'b-done' },
-    h('header', { className: 'b-figh' }, h('p', null, h('b', null, 'FIG 4.'), data.kind === 'message' ? ' Message ready' : confirmed ? ' Confirmed' : ' Pending confirmation'), h('span', { className: 'b-chk ' + (done ? 'on' : '') }, h('svg', { viewBox: '0 0 24 24', 'aria-hidden': 'true' }, h('circle', { cx: 12, cy: 12, r: 10.5 }), h('path', { d: 'M7 12.5l3.2 3.2L17 9' })), done ? (data.kind === 'message' ? 'ready' : confirmed ? 'confirmed' : 'pending') : 'preparing')),
+    h('header', { className: 'b-figh' }, h('p', null, h('b', null, 'FIG 4.'), data.kind === 'message' ? ' Message ready' : confirmed ? ' Confirmed' : ' Not confirmed'), h('span', { className: 'b-chk ' + (done ? 'on' : '') }, h('svg', { viewBox: '0 0 24 24', 'aria-hidden': 'true' }, h('circle', { cx: 12, cy: 12, r: 10.5 }), h('path', { d: 'M7 12.5l3.2 3.2L17 9' })), done ? (data.kind === 'message' ? 'ready' : confirmed ? 'confirmed' : 'pending') : 'preparing')),
     h('div', { className: 'b-term' },
       h('ol', { 'aria-live': 'polite' }, lines.slice(0, n).map(([g, t, k], i) => h('li', { key: i, className: 'k' + k }, h('span', null, g), h('span', null, t))), !done ? h('li', { className: 'cur' }, h('span', null, '›'), h('i', null)) : null)),
     h('footer', { className: 'b-donef' },
-      h('span', null, data.kind === 'message' ? 'Nothing is sent by this page — use the email button and I reply within one business day.' : confirmed ? 'Confirmed. Add it to your calendar with the .ics; the email is optional.' : (data.fallbackReason ? `Automatic confirmation didn\u2019t answer (${data.fallbackReason}). Not booked yet — send the request and I confirm the time by email.` : data.unverified ? 'Not booked yet — send the request and I confirm the time by email, usually within one business day.' : 'Not booked yet — the slot was free when checked. Send the request; it is confirmed only when I reply.')),
+      h('span', null, data.kind === 'message' ? 'Message prepared. Copy it and send it to margarethcondes.mc@gmail.com (the address is also in the column on the left); I reply within one business day.' : confirmed ? `Confirmed. A confirmation email is on its way to ${data.email}.` : 'Not confirmed — nothing was booked. Please try again later.'),
       h('span', { className: 'b-acts' },
-        h('a', { href: links.mailto, className: 'b-btn pri' }, h(Ic.Mail, { size: 12 }), data.kind === 'message' ? ' Send message' : ' Send by email'),
-        links.icsUrl ? h('a', { href: links.icsUrl, download: links.icsName, className: 'b-btn' }, h(Ic.Calendar, { size: 12 }), ' Download .ics') : null,
         h('button', { type: 'button', onClick: copy, className: 'b-btn' }, h(Ic.Copy, { size: 12 }), copied ? ' Copied' : ' Copy summary'),
         h('button', { type: 'button', onClick: onReset, className: 'b-btn' }, h(Ic.RotateCcw, { size: 12 }), ' Start over'))));
 }
@@ -3000,15 +2990,15 @@ function DiscoveryBooking({ sheet = '07', mailto = '' }) {
           setAvail(a => ({ ...a, [akey(slot)]: { state: 'busy', reason: res.reason || 'taken while you were filling in the form', at: Date.now() } }));
           setNotice('That time was taken just now — the calendar is refreshed, please pick another slot.'); setStatus('idle');
         } else {
-          /* v17: server unreachable → finish as a request (email + .ics), no error shown; overlaps are handled on the n8n side */
-          setConfirmed({ state: 'fallback', reason: res.reason }); setNotice(`Automatic confirmation didn\u2019t answer (${res.reason}), so this was sent as a request \u2014 I confirm by email.`);
-          const pf = { ...payload, fallbackReason: res.reason };
-          setLinks(onBook(pf)); setBooked(pf); rememberSent(slot.utc); setSent(sentList()); setStatus('done');
+          /* v24: no email fallback — the booking is simply not confirmed; the visitor can try again */
+          setConfirmed(null); setStatus('idle');
+          setNotice(`Booking not confirmed \u2014 the booking service didn\u2019t give a valid answer (${res.reason}). Nothing was booked. Please try again in a moment.`);
         }
       })();
       return;
     }
-    setTimeout(() => { setLinks(onBook(payload)); setBooked(payload); rememberSent(slot.utc); setSent(sentList()); setStatus('done'); }, 700);
+    /* v25: no automatic endpoint configured → nothing is booked and nothing is prepared */
+    setStatus('idle'); setNotice('Automatic booking is not available right now. Nothing was booked \u2014 please try again later.');
   };
   const reset = () => { setStatus('idle'); setBooked(null); setLinks(null); setConfirmed(null); setAsk(null); setDate(null); setTime(null); setForm({ service: SERVICES[0], name: '', email: '', message: '', company: '' }); setTouched({}); setNotice(''); t0.current = Date.now(); };
   const STEPS = ['Date', 'Time', 'Details', isAuto ? 'Book' : 'Send'];
@@ -4243,7 +4233,7 @@ const WORKFLOWS=[
   {id:'edit',x:1,y:1,t:'Edit fields',s:'Normalise payload',st:'ok',ic:'sliders',d:'Dates become ISO timestamps and the end time is start + duration, so the whole period is checked, not only the start.'},
   {id:'cal',x:2,y:1,t:'Google Calendar',s:'Read free / busy',st:'ok',ic:'calendar',d:'Read-only lookup over the requested range in Asia/Manila time. Nothing is created in this step.'},
   {id:'if',x:3,y:1,t:'IF',s:'Period free?',st:'ok',ic:'branch',d:'Any overlapping event → busy. Otherwise free.'},
-  {id:'resp',x:4,y:0,t:'Respond',s:'available · true',st:'ok',ic:'reply',d:'The page unlocks the request. The visitor sends it by email with an .ics file, marked pending until I reply.'},
+  {id:'resp',x:4,y:0,t:'Respond',s:'available · true',st:'ok',ic:'reply',d:'The page shows the slot as free. The booking itself is confirmed by the book-appointment workflow, which creates the event and emails both sides.'},
   {id:'busy',x:4,y:2,t:'Respond',s:'available · false',st:'ok',ic:'reply',d:'The slot is greyed out on the page and the visitor picks another time.'},
   {id:'create',x:5,y:0,t:'Create event',s:'Booking hours',st:'dev',ic:'plus',d:'Re-checks the range server-side, then creates the event for 10 PM–10 AM PHT bookings. All other hours are closed.'},
   {id:'log',x:6,y:0,t:'Sheet row',s:'Request log',st:'dev',ic:'sheet',d:'Planned: one row per request for follow-up and a simple view of what is pending.'},
