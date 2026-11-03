@@ -2995,6 +2995,46 @@ function DiscoveryBooking({ sheet = '07', mailto = '' }) {
   const seq = useRef(0);
   useEffect(() => { window.mcBookingTopic = t => setForm(f => ({ ...f, service: /fiber|design|qc|document|engineer|osp|ftth/i.test(String(t)) ? SERVICES[1] : SERVICES[0] })); return () => { delete window.mcBookingTopic; }; }, []);
   const day = useMemo(() => date ? slotsFor(date, duration, slotZone) : { slots: [], blocked: [] }, [date, duration, slotZone]);
+  
+const [calendarDays, setCalendarDays] = useState({
+  status: 'idle',
+  data: {}
+});
+
+useEffect(() => {
+  if (!date || !day.slots.length) {
+    setCalendarDays({ status: 'idle', data: {} });
+    return;
+  }
+
+  let cancelled = false;
+
+  // Find the Philippine dates covered by the displayed slots.
+  const dates = [...new Set(day.slots.flatMap(s => [
+    utcToWall(s.utc, AVAIL.zone).key,
+    utcToWall(s.utc + duration * 60000 - 1, AVAIL.zone).key
+  ]))];
+
+  setCalendarDays({ status: 'loading', data: {} });
+
+  Promise.all(dates.map(fetchDayAvailability))
+    .then(results => {
+      if (cancelled) return;
+      setCalendarDays({
+        status: 'ready',
+        data: Object.fromEntries(results.map(r => [r.date, r]))
+      });
+    })
+    .catch(error => {
+      console.error('Calendar loading failed:', error);
+      if (!cancelled) {
+        setCalendarDays({ status: 'error', data: {} });
+      }
+    });
+
+  return () => { cancelled = true; };
+}, [day, duration]);
+  
   useEffect(() => { setTime(t => t != null && day.slots.some(s => s.utc === t) ? t : null); }, [day]);
   useEffect(() => { if (date && !dayStatus(date, slotZone, now).open) setDate(null); }, [slotZone]);
   const slot = day.slots.find(s => s.utc === time);
