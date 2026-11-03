@@ -2715,6 +2715,31 @@ const AUTO_CONFIRM_READY = !!N8N.bookUrl;
 /* v18: PRECHECK=false → every slot inside booking hours can be picked; no pre-check gates the visitor.
    Overlaps are handled by the n8n book-appointment workflow. Set back to true to restore the slot-by-slot calendar check. */
 const PRECHECK = false;
+
+async function fetchDayAvailability(dateKey) {
+  const url = `${N8N.checkUrl}?date=${encodeURIComponent(dateKey)}`;
+
+  const response = await fetch(url, {
+    method: 'GET'
+  });
+
+  if (!response.ok) {
+    throw new Error(`Availability check failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+
+  if (
+    data.date !== dateKey ||
+    typeof data.allDayBlocked !== 'boolean' ||
+    !Array.isArray(data.busyPeriods)
+  ) {
+    throw new Error('Invalid availability response');
+  }
+
+  return data;
+}
+
 function parseBooking(json) {
   const j = Array.isArray(json) ? json[0] : json;
   if (!j || typeof j !== 'object') return null;
