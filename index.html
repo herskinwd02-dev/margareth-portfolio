@@ -2714,7 +2714,7 @@ const N8N = {
 const AUTO_CONFIRM_READY = !!N8N.bookUrl;
 /* v18: PRECHECK=false → every slot inside booking hours can be picked; no pre-check gates the visitor.
    Overlaps are handled by the n8n book-appointment workflow. Set back to true to restore the slot-by-slot calendar check. */
-const PRECHECK = false;
+const PRECHECK = true;
 
 async function fetchDayAvailability(dateKey) {
   const url = `${N8N.checkUrl}?date=${encodeURIComponent(dateKey)}`;
