@@ -2708,7 +2708,7 @@ const N8N = {
      range and creates the calendar event exists; while empty, regular-hour slots fall back to requests. */
   // v23: TEST endpoint while the workflow is being verified (press "Listen for test event" in n8n first).
   // Switch to production by changing /webhook-test/ → /webhook/ (workflow must be Active).
-  bookUrl: 'https://miniveda.app.n8n.cloud/webhook-test/book-appointment',
+  bookUrl: 'https://miniveda.app.n8n.cloud/webhook/book-appointment',
   timeoutMs: 30000 // the booking workflow creates the event and sends two emails before it replies
 };
 const AUTO_CONFIRM_READY = !!N8N.bookUrl;
