@@ -2783,21 +2783,58 @@ function parseAvailability(json) {
   if (Array.isArray(j.conflicts)) return { available: j.conflicts.length === 0, reason };
   return null;
 }
+
 async function checkAvailability(payload) {
-  const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), N8N.timeoutMs);
   try {
-    const r = await fetch(N8N.checkUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: ctl.signal });
-    if (!r.ok) return { state: 'error', reason: `Checker responded ${r.status}` };
-    let j = null;
-    try { j = await r.json(); } catch (e) { return { state: 'error', reason: 'Checker returned no JSON' }; }
-    const a = parseAvailability(j);
-    if (!a) return { state: 'error', reason: 'Unrecognised checker reply' };
-    return { state: a.available ? 'free' : 'busy', reason: a.reason };
-  } catch (e) {
-    return { state: 'error', reason: e && e.name === 'AbortError' ? 'Checker timed out' : 'Checker unreachable' };
-  } finally { clearTimeout(timer); }
+    const start = Number(payload.utc);
+    const end = Number(payload.end);
+
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+      throw new Error('Invalid appointment time');
+    }
+
+    // Find Philippine dates touched by this appointment.
+    const dates = [...new Set([
+      utcToWall(start, AVAIL.zone).key,
+      utcToWall(end - 1, AVAIL.zone).key
+    ])];
+
+    // Ask n8n for Google Calendar availability.
+    const results = await Promise.all(
+      dates.map(fetchDayAvailability)
+    );
+
+    // Check all-day blocks and overlapping appointments.
+    const busy = results.some(day =>
+      day.allDayBlocked ||
+      day.busyPeriods.some(period => {
+        const from = Date.parse(period.start);
+        const to = Date.parse(period.end);
+
+        if (!Number.isFinite(from) ||
+            !Number.isFinite(to) ||
+            to <= from) {
+          throw new Error('Invalid calendar period');
+        }
+
+        return from < end && to > start;
+      })
+    );
+
+    return {
+      state: busy ? 'busy' : 'free',
+      reason: busy ? 'Already booked on Google Calendar' : ''
+    };
+
+  } catch (error) {
+    console.error('Availability check failed:', error);
+    return {
+      state: 'error',
+      reason: 'Unable to check Google Calendar'
+    };
+  }
 }
+
 /* exact payload the workflow expects (field names preserved) */
 const checkPayload = (slot, duration, date, slotZone, form) => ({
   utc: slot.utc, duration, date: key(date), time: slot.label, end: slot.utc + duration * 60000, slotZone,
