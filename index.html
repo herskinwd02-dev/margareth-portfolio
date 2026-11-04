@@ -2042,7 +2042,7 @@ footer.foot .foot-end{margin-top:12px;font-size:11px}
               <div class="crow"><dt>Email</dt><dd><a class="cval" id="emailTxt" href="mailto:margarethcondes.mc@gmail.com">margarethcondes.mc@gmail.com</a></dd><button class="tbtn" type="button" id="copyEmail">Copy</button></div>
               <div class="crow"><dt>LinkedIn</dt><dd><a class="cval" href="https://www.linkedin.com/in/margareth-c/" target="_blank" rel="noopener">linkedin.com/in/margareth-c</a></dd><a class="tbtn" href="https://www.linkedin.com/in/margareth-c/" target="_blank" rel="noopener">Open ↗</a></div>
               <div class="crow"><dt>Résumé</dt><dd><a class="cval" href="https://canva.link/iwatahjxg40szb8" target="_blank" rel="noopener">View my résumé</a></dd><a class="tbtn" href="https://canva.link/iwatahjxg40szb8" target="_blank" rel="noopener">Open ↗</a></div>
-              <div class="crow"><dt>Base</dt><dd><span class="cplain"><span class="avail-dot" aria-hidden="true"></span>Cavite, Philippines · night shift (UTC+8) · open for projects</span></dd><span></span></div>
+              <div class="crow"><dt>Base</dt><dd><span class="cplain"><span class="avail-dot" aria-hidden="true"></span>Cavite, Philippines · UTC+8 · open for projects</span></dd><span></span></div>
             </dl>
             <p class="msg" id="emailMsg" role="status"></p>
           </div>
@@ -2552,7 +2552,7 @@ const AVAIL = {
   zone: 'Asia/Manila',      // IANA zone for all rules (Philippine Time, UTC+8)
   days: [1, 2, 3, 4, 5],    // Monday–Friday, by the Philippine date a window starts on
   windows: [
-    { id: 'regular', label: 'Booking hours', start: 22 * 60, end: 34 * 60, mode: 'auto' }     // 10 PM–10 AM PHT · auto-confirm after a successful check; everything else closed
+    { id: 'regular', label: 'Booking hours', start: 0, end: 24 * 60, mode: 'auto' }     // 24 hours PHT · auto-confirm after a successful check; everything else closed
   ],
   leadDays: 1,              // no same-day requests
   horizonDays: 60,          // how far ahead
@@ -2560,11 +2560,14 @@ const AVAIL = {
 };
 AVAIL.start = AVAIL.windows[0].start; AVAIL.end = AVAIL.windows[0].end; // kept for the overlap band
 
-/* ---------- Philippine holidays (data, not code) ----------
-   kind 'regular': fixed dates + last Monday of August + Holy Week from Easter.
-   kind 'special': declared special non-working days that recur by proclamation (Black Saturday,
-   Ninoy Aquino Day, All Saints' Day, Immaculate Conception, Dec 24, Dec 31, EDSA anniversary, Chinese New Year).
-   Eid'l Fitr / Eid'l Adha and one-off proclamations are not computable and must be added by date when proclaimed. */
+/* ---------- Philippine public holidays ----------
+   National regular and special NON-WORKING days; special working days remain open.
+   Sources: Proclamations 1006 (2026), 1189 / 1264 (2026 Eid), 1427 (2027).
+   https://elibrary.judiciary.gov.ph/thebookshelf/showdocs/7/99678
+   https://elibrary.judiciary.gov.ph/thebookshelf/showdocs/7/102791
+   Review annually and add newly proclaimed / local holidays by date. 2027 Eid dates
+   are pending proclamation. This static list is not a live government holiday feed.
+   n8n must independently enforce hours, holidays, lead time and calendar conflicts. */
 const HOLIDAYS = [
   { name: "New Year's Day", rule: 'fixed', month: 1, day: 1 },
   { name: 'Araw ng Kagitingan', rule: 'fixed', month: 4, day: 9 },
@@ -2577,13 +2580,15 @@ const HOLIDAYS = [
   { name: 'Maundy Thursday', rule: 'easter', offset: -3 },
   { name: 'Good Friday', rule: 'easter', offset: -2 },
   { name: 'Black Saturday', rule: 'easter', offset: -1, kind: 'special' },
-  { name: 'EDSA People Power Anniversary', rule: 'fixed', month: 2, day: 25, kind: 'special' },
   { name: 'Ninoy Aquino Day', rule: 'fixed', month: 8, day: 21, kind: 'special' },
   { name: "All Saints' Day", rule: 'fixed', month: 11, day: 1, kind: 'special' },
   { name: 'Feast of the Immaculate Conception', rule: 'fixed', month: 12, day: 8, kind: 'special' },
   { name: 'Christmas Eve', rule: 'fixed', month: 12, day: 24, kind: 'special' },
   { name: 'Last day of the year', rule: 'fixed', month: 12, day: 31, kind: 'special' },
-  { name: 'Chinese New Year', rule: 'table', dates: { 2025: '01-29', 2026: '02-17', 2027: '02-06', 2028: '01-26', 2029: '02-13', 2030: '02-03', 2031: '01-23', 2032: '02-11' }, kind: 'special' }
+  { name: "All Souls' Day", rule: 'table', dates: { 2026: '11-02', 2027: '11-02' }, kind: 'special' },
+  { name: "Eid'l Fitr", rule: 'table', dates: { 2026: '03-20' } },
+  { name: "Eid'l Adha", rule: 'table', dates: { 2026: '05-27' } },
+  { name: 'Chinese New Year', rule: 'table', dates: { 2026: '02-17', 2027: '02-06' }, kind: 'special' }
 ];
 function easter(y) { // Anonymous Gregorian algorithm
   const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), hh = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - hh - k) % 7, m = Math.floor((a + 11 * hh + 22 * l) / 451), mo = Math.floor((hh + l - 7 * m + 114) / 31), da = (hh + l - 7 * m + 114) % 31 + 1;
@@ -2705,18 +2710,22 @@ function onBook(payload) {
    Website form → Webhook → Edit Fields → Google Calendar (free/busy, read only) → IF → Respond to Webhook.
    The checker answers "is this period free on my calendar?". It never creates or confirms anything.
    checkUrl below is the TEST endpoint; production is the same path under /webhook/ (manual swap). */
+/* ---------- n8n endpoints ----------
+   N8N_USE_TEST = false → production URLs (/webhook/…): the workflows must be ACTIVE in n8n. Use for the live site.
+   N8N_USE_TEST = true  → test URLs (/webhook-test/…): answer only while "Listen for test event" is running
+                          in the n8n editor. Use for a one-off check, then set back to false.
+   check-availability: GET ?date=YYYY-MM-DD (Philippine date) → { date, allDayBlocked, busyPeriods:[{start,end}] }
+   book-appointment:   POST JSON booking → { confirmed:true } | { ok:true, available:false }                    */
+const N8N_USE_TEST = false;
+const N8N_BASE = 'https://miniveda.app.n8n.cloud/' + (N8N_USE_TEST ? 'webhook-test' : 'webhook');
 const N8N = {
-  checkUrl: 'https://miniveda.app.n8n.cloud/webhook/check-availability',
-  /* auto-confirmation endpoint for REGULAR hours. Leave empty until the n8n workflow that re-checks the
-     range and creates the calendar event exists; while empty, regular-hour slots fall back to requests. */
-  // v23: TEST endpoint while the workflow is being verified (press "Listen for test event" in n8n first).
-  // Switch to production by changing /webhook-test/ → /webhook/ (workflow must be Active).
-  bookUrl: 'https://miniveda.app.n8n.cloud/webhook/book-appointment',
+  checkUrl: N8N_BASE + '/check-availability',   // calendar availability (read-only)
+  bookUrl: N8N_BASE + '/book-appointment',      // automatic booking (calendar check → event → emails)
   timeoutMs: 30000 // the booking workflow creates the event and sends two emails before it replies
 };
 const AUTO_CONFIRM_READY = !!N8N.bookUrl;
-/* v18: PRECHECK=false → every slot inside booking hours can be picked; no pre-check gates the visitor.
-   Overlaps are handled by the n8n book-appointment workflow. Set back to true to restore the slot-by-slot calendar check. */
+/* PRECHECK = true → each selected date is checked against Google Calendar through n8n before a slot can be booked.
+   false → every slot in the window is selectable and only book-appointment decides. */
 const PRECHECK = true;
 
 async function fetchDayAvailability(dateKey) {
@@ -2899,7 +2908,7 @@ function Calendar({ value, onChange, slotZone, now, blockedDateKey = null }) {
           : h('span', { key: i, className: 'b-daywrap', tabIndex: inMonth ? 0 : -1, 'aria-label': label }, inner, h('span', { className: 'b-tip', role: 'tooltip' }, h('b', null, fmtShort(d)), st.reason));
       })),
     h('div', { className: 'b-legend' },
-      h('span', null, h('i', { className: 'lg-open' }), ' open'), h('span', null, h('i', { className: 'lg-wk' }), ' weekend'), h('span', null, h('i', { className: 'lg-hol' }), ' PH regular holiday'), h('span', null, h('i', { className: 'lg-dots' }), ' more slots')));
+      h('span', null, h('i', { className: 'lg-open' }), ' open'), h('span', null, h('i', { className: 'lg-wk' }), ' weekend'), h('span', null, h('i', { className: 'lg-hol' }), ' PH public holiday'), h('span', null, h('i', { className: 'lg-dots' }), ' more slots')));
 }
 
 /* ---------- overlap band ---------- */
@@ -2922,7 +2931,7 @@ function Overlap({ date, slotZone, myZone }) {
   return h('div', { className: 'b-ovl', 'aria-label': 'Booking hours', style: { '--n': N } },
     h('div', { className: 'b-ovlr' }, h('span', { className: 'b-ovll' }, zAbbr(slotZone, D)), h('span', { className: 'b-ovlb' }, shown.map(x => h('i', { key: x.hh, className: x.on ? 'on' : x.req ? 'req' : '', title: `${pad(x.hh)}:00 ${zAbbr(slotZone, D)}${x.on ? ' · booking hours' : x.req ? ' · on request' : ''}` }))), h('span', { className: 'b-ovlt' }, ticks.map(t => h('em', { key: t }, tickSlot(t))))),
     slotZone === myZone ? null : h('div', { className: 'b-ovlr' }, h('span', { className: 'b-ovll' }, zAbbr(myZone, D)), h('span', { className: 'b-ovlb thin' }, shown.map(x => h('i', { key: x.hh, className: x.on ? 'on' : x.req ? 'req' : '' }))), h('span', { className: 'b-ovlt' }, ticks.map(t => h('em', { key: t }, tickMe(t))))),
-    h('p', { className: 'b-ovlc' }, h('i', { className: 'k on' }), ` Booking hours ${mm(AVAIL.windows[0].start)}–${mm(AVAIL.windows[0].end)} PHT`, first != null ? ` = ${pad(first)}:00–${pad(last % 24)}:00 ${zAbbr(slotZone, D)}` : ' · none on this date', AVAIL.windows[1] ? h(React.Fragment, null, '  ', h('i', { className: 'k req' }), ` ${mm(AVAIL.windows[1].start)}–${mm(AVAIL.windows[1].end)} PHT on request`) : null));
+    h('p', { className: 'b-ovlc' }, h('i', { className: 'k on' }), cnt === 24 ? ' Booking hours · all day, Monday–Friday (Philippine time)' : ` Booking hours ${mm(AVAIL.windows[0].start)}–${mm(AVAIL.windows[0].end)} PHT` + (first != null ? ` = ${pad(first)}:00–${pad(last % 24)}:00 ${zAbbr(slotZone, D)}` : ' · none on this date'), AVAIL.windows[1] ? h(React.Fragment, null, '  ', h('i', { className: 'k req' }), ` ${mm(AVAIL.windows[1].start)}–${mm(AVAIL.windows[1].end)} PHT on request`) : null));
 }
 
 /* ---------- terminal (success) ---------- */
@@ -3161,7 +3170,7 @@ function DiscoveryBooking({ sheet = '07', mailto = '' }) {
     h('header', { className: 'b-head' },
       h('div', { className: 'b-id' },
         h(Clock, { zone: myZone }),
-        h('div', null, h('p', { className: 'b-k' }, h('i', { className: 'b-node on' }), ' Sheet ', sheet, ' / Conversation & booking'), h('h3', null, 'Start a Conversation'), h('p', { className: 'b-sub' }, 'Send a message, or pick a time for a call. Calls are 10 PM–10 AM Philippine time, Monday to Friday, and confirm automatically after a calendar check.'))),
+        h('div', null, h('p', { className: 'b-k' }, h('i', { className: 'b-node on' }), ' Sheet ', sheet, ' / Conversation & booking'), h('h3', null, 'Start a Conversation'))),
       zoneSel),
     h('ol', { className: 'b-rail', 'aria-label': 'Progress' },
       h('span', { className: 'b-railp', style: { width: `${Math.min(3, STEPS.filter((_, i) => stepDone(i)).length) / 3 * 100}%` } }),
@@ -3202,7 +3211,7 @@ function DiscoveryBooking({ sheet = '07', mailto = '' }) {
               av && av.state === 'free' ? h('span', null, h(Ic.Check, { size: 12, strokeWidth: 3 }), ` ${slot.label}\u2013${slot.end} ${zAbbr(slotZone, date)} is free on my calendar \u00B7 ${isAuto ? 'confirmed on booking' : slot.mode === 'request' ? 'sent as a request for my approval' : 'you can send the request'}`) :
               av && av.state === 'busy' ? h('span', null, h('i', { className: 'b-node busy' }), ` ${slot.label} ${zAbbr(slotZone, date)} is already booked${av.reason ? ' \u00B7 ' + av.reason : ''} \u2014 pick another time, or `, h('button', { type: 'button', className: 'b-link', onClick: () => setTime(null) }, 'send a message instead')) :
               av && av.state === 'error' ? h('span', null, h('i', { className: 'b-node err' }), ' Calendar check unavailable. Please try again; appointments are temporarily disabled. ', h('button', { type: 'button', className: 'b-link', onClick: () => setCalendarRefresh(n => n + 1) }, 'Retry')) : null))
-          : h('p', { className: 'b-empty' }, day.blocked.length ? `Regular holiday · ${day.blocked[0]}` : 'No overlap with my working window on this date')),
+          : h('p', { className: 'b-empty' }, day.blocked.length ? day.blocked[0] : 'No overlap with my working window on this date')),
         h('form', { className: 'b-form', onSubmit: submit, noValidate: true },
           h(Fig, { no: '3', title: 'Details', right: canSend ? `${fmtShort(date)} · ${slot.label} ${zAbbr(slotZone, date)} · free` : slot ? 'awaiting calendar check' : 'message only' },
             h('div', { className: 'b-fields' },
@@ -3220,7 +3229,7 @@ function DiscoveryBooking({ sheet = '07', mailto = '' }) {
         h('h4', { id: 'bkAskT' }, 'This time requires personal confirmation.'),
         h('p', null, `${ask.label} ${zAbbr(slotZone, date)} (${ask.pht} PHT) is outside my regular hours. Would you like to proceed?`),
         h('div', { className: 'b-modal-a' }, h('button', { type: 'button', className: 'b-btn', onClick: () => setAsk(null), autoFocus: true }, 'Cancel'), h('button', { type: 'button', className: 'b-btn pri', onClick: () => { setTime(ask.utc); setAsk(null); } }, 'Continue')))) : null,
-    h('footer', { className: 'b-foot' }, h('span', null, (AUTO_CONFIRM_READY ? 'Bookings confirm automatically after a Google Calendar check through n8n \u00B7 10 PM\u201310 AM PHT, Mon\u2013Fri' : 'Requests only until auto-confirmation is connected \u00B7 availability is read from my Google Calendar through n8n') + (N8N_IS_TEST ? ' (test endpoint)' : '') + ' \u00B7 Asia/Manila \u00B7 weekends and PH holidays closed'), h('span', null, 'Step ', step, ' / 4')));
+    h('footer', { className: 'b-foot' }, h('span', null, (AUTO_CONFIRM_READY ? 'Bookings confirm automatically after a Google Calendar check through n8n \u00B7 24 hours PHT, Mon\u2013Fri' : 'Requests only until auto-confirmation is connected \u00B7 availability is read from my Google Calendar through n8n') + (N8N_IS_TEST ? ' (test endpoint)' : '') + ' \u00B7 Asia/Manila \u00B7 weekends and PH holidays closed'), h('span', null, 'Step ', step, ' / 4')));
 }
 window.DiscoveryBooking = DiscoveryBooking;
 (function () {
@@ -4397,7 +4406,7 @@ const WORKFLOWS=[
   {id:'if',x:3,y:1,t:'IF',s:'Period free?',st:'ok',ic:'branch',d:'Any overlapping event → busy. Otherwise free.'},
   {id:'resp',x:4,y:0,t:'Respond',s:'available · true',st:'ok',ic:'reply',d:'The page shows the slot as free. The booking itself is confirmed by the book-appointment workflow, which creates the event and emails both sides.'},
   {id:'busy',x:4,y:2,t:'Respond',s:'available · false',st:'ok',ic:'reply',d:'The slot is greyed out on the page and the visitor picks another time.'},
-  {id:'create',x:5,y:0,t:'Create event',s:'Booking hours',st:'dev',ic:'plus',d:'Re-checks the range server-side, then creates the event for 10 PM–10 AM PHT bookings. All other hours are closed.'},
+  {id:'create',x:5,y:0,t:'Create event',s:'Booking hours',st:'dev',ic:'plus',d:'Re-checks the range server-side, then creates the event. Any hour Monday–Friday (Philippine time) can be booked; weekends and public holidays are closed.'},
   {id:'log',x:6,y:0,t:'Sheet row',s:'Request log',st:'dev',ic:'sheet',d:'Planned: one row per request for follow-up and a simple view of what is pending.'},
   {id:'draft',x:6,y:1,t:'AI assistant',s:'Draft reply',st:'idea',ic:'ai',d:'Concept: draft the confirmation email for me to review and send. A person stays in the loop.'}],
   edges:[['trg','edit'],['edit','cal'],['cal','if'],['if','resp','true'],['if','busy','false'],['resp','create'],['create','log'],['create','draft']]},
