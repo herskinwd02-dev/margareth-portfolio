@@ -7,6 +7,7 @@
   <title>Manage Appointment | Margareth Condes</title>
   <style>
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
       padding: 48px 20px;
@@ -14,6 +15,7 @@
       color: #18324A;
       font: 16px/1.6 Arial, sans-serif;
     }
+
     main {
       max-width: 520px;
       margin: auto;
@@ -22,12 +24,15 @@
       border: 1px solid #B7C2C6;
       border-radius: 8px;
     }
+
     h1 { margin-top: 0; }
+
     label {
       display: block;
       margin-top: 18px;
       font-weight: bold;
     }
+
     input, select, button {
       width: 100%;
       padding: 12px;
@@ -35,7 +40,11 @@
       font: inherit;
       border-radius: 4px;
     }
-    input, select { border: 1px solid #B7C2C6; }
+
+    input, select {
+      border: 1px solid #B7C2C6;
+    }
+
     button {
       margin-top: 24px;
       background: #18324A;
@@ -43,72 +52,341 @@
       border: 0;
       cursor: pointer;
     }
-    button:disabled { opacity: .5; }
+
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
     #rescheduleFields[hidden] { display: none; }
-    .note { color: #5B6B78; font-size: 14px; }
+
+    .note {
+      color: #5B6B78;
+      font-size: 14px;
+    }
+
+    #result {
+      margin-top: 18px;
+      font-weight: bold;
+      white-space: pre-wrap;
+    }
+
+    #result.success { color: #176B4D; }
+    #result.error { color: #A12626; }
+
+    a { color: #176B70; }
   </style>
 </head>
+
 <body>
   <main>
     <h1>Manage Your Appointment</h1>
-    <p>Update or cancel your scheduled consultation.</p>
+
+    <p>
+      Cancel or reschedule your scheduled consultation
+      with Margareth Condes.
+    </p>
 
     <form id="manageForm">
-      <label for="action">What would you like to do?</label>
+
+      <label for="action">
+        What would you like to do?
+      </label>
+
       <select id="action" required>
-        <option value="reschedule">Reschedule Appointment</option>
-        <option value="cancel">Cancel Appointment</option>
+        <option value="reschedule">
+          Reschedule Appointment
+        </option>
+        <option value="cancel">
+          Cancel Appointment
+        </option>
       </select>
 
       <label for="bookingId">Booking ID</label>
-      <input id="bookingId" type="text" required>
 
-      <label for="cancellationToken">Management Token</label>
-      <input id="cancellationToken"
-             type="password" required
-             autocomplete="off">
+      <input
+        id="bookingId"
+        type="text"
+        required
+        autocomplete="off"
+        placeholder="BK-XXXXXXXX"
+      >
+
+      <label for="cancellationToken">
+        Management Token
+      </label>
+
+      <input
+        id="cancellationToken"
+        type="password"
+        required
+        autocomplete="off"
+        placeholder="Enter token from confirmation email"
+      >
 
       <div id="rescheduleFields">
-        <label for="newStartTime">New Appointment Date & Time</label>
-        <input id="newStartTime" type="datetime-local">
+
+        <label for="newStartTime">
+          New Appointment Date & Time
+        </label>
+
+        <input
+          id="newStartTime"
+          type="datetime-local"
+          step="900"
+        >
 
         <p class="note">
           Times are in Philippine Standard Time (UTC+8).
-          Your original appointment duration will be preserved.
+          The original appointment duration must remain
+          unchanged. Rescheduling requires at least
+          12 hours' advance notice.
         </p>
+
       </div>
 
-      <button id="submitBtn" type="submit" disabled>
-        Integration Pending
+      <button id="submitBtn" type="submit">
+        Reschedule Appointment
       </button>
 
       <p id="result" role="status" aria-live="polite"></p>
     </form>
 
     <p class="note">
-      Rescheduling is subject to availability and
-      advance-booking requirements.
+      All appointment changes are subject to
+      availability and verification.
     </p>
+
+    <p class="note">
+      Your management token is private. Do not share
+      it with anyone.
+    </p>
+
   </main>
 
   <script>
-    const action = document.getElementById('action');
-    const fields = document.getElementById('rescheduleFields');
-    const start = document.getElementById('newStartTime');
+    "use strict";
 
-    function updateForm() {
-      const rescheduling = action.value === 'reschedule';
-      fields.hidden = !rescheduling;
-      start.required = rescheduling;
+    // n8n webhook endpoints.
+    // These become available when the respective
+    // n8n workflows are published.
+
+    const N8N = {
+      cancel:
+        "https://miniveda.app.n8n.cloud/webhook/cancel-appointment",
+      reschedule:
+        "https://miniveda.app.n8n.cloud/webhook/reschedule-appointment"
+    };
+
+    const form = document.getElementById("manageForm");
+    const action = document.getElementById("action");
+    const fields = document.getElementById("rescheduleFields");
+    const start = document.getElementById("newStartTime");
+    const bookingId = document.getElementById("bookingId");
+    const token = document.getElementById("cancellationToken");
+    const button = document.getElementById("submitBtn");
+    const result = document.getElementById("result");
+
+    const params = new URLSearchParams(window.location.search);
+
+    // The booking email may provide the booking ID
+    // and original appointment duration.
+    // Never include the private token in URL parameters.
+
+    const suppliedBookingId = params.get("bookingId") || "";
+    const suppliedDuration = params.get("duration");
+    const originalDuration = Number(suppliedDuration);
+
+    const permittedDurations = [15, 30, 45, 60];
+
+    bookingId.value = suppliedBookingId;
+
+    if (params.get("action") === "cancel") {
+      action.value = "cancel";
     }
 
-    action.addEventListener('change', updateForm);
+    function showMessage(message, type = "") {
+      result.textContent = message;
+      result.className = type;
+    }
+
+    function updateForm() {
+      const isRescheduling = action.value === "reschedule";
+
+      fields.hidden = !isRescheduling;
+      start.required = isRescheduling;
+
+      button.textContent = isRescheduling
+        ? "Reschedule Appointment"
+        : "Cancel Appointment";
+
+      showMessage("");
+    }
+
+    action.addEventListener("change", updateForm);
+
     updateForm();
 
-    document.getElementById('manageForm')
-      .addEventListener('submit', event => {
-        event.preventDefault();
-      });
+    // Format a timestamp in Philippine Time (UTC+8).
+    function manilaISO(date) {
+      const adjusted = new Date(
+        date.getTime() + 8 * 60 * 60 * 1000
+      );
+
+      return adjusted.toISOString().slice(0, 19) + "+08:00";
+    }
+
+    // Process cancellation or rescheduling.
+    form.addEventListener("submit", async function(event) {
+      event.preventDefault();
+
+      showMessage("");
+
+      const isRescheduling = action.value === "reschedule";
+
+      const data = {
+        bookingId: bookingId.value.trim(),
+        cancellationToken: token.value.trim()
+      };
+
+      if (!data.bookingId || !data.cancellationToken) {
+        showMessage(
+          "Please enter your Booking ID and management token.",
+          "error"
+        );
+        return;
+      }
+
+      if (isRescheduling) {
+
+        if (
+          suppliedDuration === null ||
+          !permittedDurations.includes(originalDuration)
+        ) {
+          showMessage(
+            "Your original appointment duration is missing. " +
+            "Please open the rescheduling link from your " +
+            "confirmation email.",
+            "error"
+          );
+          return;
+        }
+
+        if (!start.value) {
+          showMessage(
+            "Please select a new appointment date and time.",
+            "error"
+          );
+          return;
+        }
+
+        const newStart = new Date(start.value + ":00+08:00");
+
+        if (!Number.isFinite(newStart.getTime())) {
+          showMessage(
+            "Invalid appointment date or time.",
+            "error"
+          );
+          return;
+        }
+
+        const earliest = Date.now() + 12 * 60 * 60 * 1000;
+
+        if (newStart.getTime() < earliest) {
+          showMessage(
+            "Please choose a time at least 12 hours from now.",
+            "error"
+          );
+          return;
+        }
+
+        const newEnd = new Date(
+          newStart.getTime() + originalDuration * 60000
+        );
+
+        data.newStartTime = manilaISO(newStart);
+        data.newEndTime = manilaISO(newEnd);
+
+      } else {
+
+        const confirmed = window.confirm(
+          "Are you sure you want to cancel your appointment?"
+        );
+
+        if (!confirmed) return;
+      }
+
+      button.disabled = true;
+      button.textContent = "Processing...";
+
+      try {
+        const endpoint = isRescheduling
+          ? N8N.reschedule
+          : N8N.cancel;
+
+        // URL-encoded POST uses the same body field names
+        // expected by the existing n8n workflows.
+        const response = await fetch(endpoint, {
+          method: "POST",
+          mode: "cors",
+          credentials: "omit",
+          headers: {
+            "Content-Type":
+              "application/x-www-form-urlencoded;charset=UTF-8"
+          },
+          body: new URLSearchParams(data).toString(),
+          cache: "no-store"
+        });
+
+        const payload = await response.json();
+
+        if (!response.ok || payload.success !== true) {
+          throw new Error(
+            payload.message ||
+            "Your appointment request was not completed."
+          );
+        }
+
+        showMessage(
+          payload.message ||
+          "Your appointment has been updated successfully.",
+          "success"
+        );
+
+        // Clear the private token after a successful request.
+        token.value = "";
+
+        // Prevent repeating the successful action.
+        button.textContent = "Request Completed";
+
+      } catch (error) {
+        showMessage(
+          error.message ||
+          "Unable to process your request. " +
+          "Please contact us before retrying.",
+          "error"
+        );
+
+        button.disabled = false;
+        updateForm();
+
+        // updateForm clears the status, so restore the error.
+        showMessage(
+          error.message ||
+          "Unable to process your request. Please contact us.",
+          "error"
+        );
+
+      } finally {
+        if (!result.classList.contains("success")) {
+          button.disabled = false;
+          button.textContent =
+            action.value === "reschedule"
+              ? "Reschedule Appointment"
+              : "Cancel Appointment";
+        }
+      }
+    });
   </script>
 </body>
 </html>
