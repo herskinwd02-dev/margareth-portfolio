@@ -1,12 +1,114 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Manage Appointment</title>
+  <title>Manage Appointment | Margareth Condes</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 48px 20px;
+      background: #F7F8F5;
+      color: #18324A;
+      font: 16px/1.6 Arial, sans-serif;
+    }
+    main {
+      max-width: 520px;
+      margin: auto;
+      padding: 32px;
+      background: white;
+      border: 1px solid #B7C2C6;
+      border-radius: 8px;
+    }
+    h1 { margin-top: 0; }
+    label {
+      display: block;
+      margin-top: 18px;
+      font-weight: bold;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      font: inherit;
+      border-radius: 4px;
+    }
+    input, select { border: 1px solid #B7C2C6; }
+    button {
+      margin-top: 24px;
+      background: #18324A;
+      color: white;
+      border: 0;
+      cursor: pointer;
+    }
+    button:disabled { opacity: .5; }
+    #rescheduleFields[hidden] { display: none; }
+    .note { color: #5B6B78; font-size: 14px; }
+  </style>
 </head>
 <body>
-  <h1>Manage Your Appointment</h1>
-  <p>Appointment management is being prepared.</p>
+  <main>
+    <h1>Manage Your Appointment</h1>
+    <p>Update or cancel your scheduled consultation.</p>
+
+    <form id="manageForm">
+      <label for="action">What would you like to do?</label>
+      <select id="action" required>
+        <option value="reschedule">Reschedule Appointment</option>
+        <option value="cancel">Cancel Appointment</option>
+      </select>
+
+      <label for="bookingId">Booking ID</label>
+      <input id="bookingId" type="text" required>
+
+      <label for="cancellationToken">Management Token</label>
+      <input id="cancellationToken"
+             type="password" required
+             autocomplete="off">
+
+      <div id="rescheduleFields">
+        <label for="newStartTime">New Appointment Date & Time</label>
+        <input id="newStartTime" type="datetime-local">
+
+        <p class="note">
+          Times are in Philippine Standard Time (UTC+8).
+          Your original appointment duration will be preserved.
+        </p>
+      </div>
+
+      <button id="submitBtn" type="submit" disabled>
+        Integration Pending
+      </button>
+
+      <p id="result" role="status" aria-live="polite"></p>
+    </form>
+
+    <p class="note">
+      Rescheduling is subject to availability and
+      advance-booking requirements.
+    </p>
+  </main>
+
+  <script>
+    const action = document.getElementById('action');
+    const fields = document.getElementById('rescheduleFields');
+    const start = document.getElementById('newStartTime');
+
+    function updateForm() {
+      const rescheduling = action.value === 'reschedule';
+      fields.hidden = !rescheduling;
+      start.required = rescheduling;
+    }
+
+    action.addEventListener('change', updateForm);
+    updateForm();
+
+    document.getElementById('manageForm')
+      .addEventListener('submit', event => {
+        event.preventDefault();
+      });
+  </script>
 </body>
 </html>
