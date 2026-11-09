@@ -3388,7 +3388,7 @@ function onBook(payload) {
    check-availability: GET ?date=YYYY-MM-DD (Philippine date) → { date, allDayBlocked, busyPeriods:[{start,end}] }
    book-appointment:   POST JSON booking → { confirmed:true } | { ok:true, available:false }                    */
 const N8N_USE_TEST = false;
-const N8N_BASE = 'https://miniveda.app.n8n.cloud/' + (N8N_USE_TEST ? 'webhook-test' : 'webhook');
+const N8N_BASE = 'https://n8n-production-dc43.up.railway.app/' + (N8N_USE_TEST ? 'webhook-test' : 'webhook');
 const N8N = {
   checkUrl: N8N_BASE + '/check-availability',   // calendar availability (read-only)
   bookUrl: N8N_BASE + '/book-appointment',      // automatic booking (calendar check → event → emails)
