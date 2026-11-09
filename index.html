@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
-<title>Margareth Condes · Integration Specialist &amp; Fiber Design Engineer</title>
+<title>Margareth Condes | Integration Specialist &amp; Fiber Design Engineer</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Margareth Condes connects business apps and automates repetitive work with n8n, webhooks and Google Workspace. Integration Specialist with 9+ years of fiber network design and engineering. Cavite, Philippines.">
+<meta name="description" content="Margareth Condes connects business apps and automates repetitive work with n8n, webhooks and Google Workspace. Integration Specialist and Fiber Design Engineer. Cavite, Philippines.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..800&family=Inter:ital,wght@0,400..650;1,400..500&family=Space+Mono:wght@400;700&display=swap">
@@ -2132,6 +2132,14 @@ footer.foot .foot-end{margin-top:12px;font-size:11px}
 html[data-v4-mode="eng"] #v4-services .v4-svc,html[data-v4-mode="eng"] #v4-services .v4-svc-side{display:none}
 html[data-v4-mode="eng"] #v4-services .v4-svc-fiber{margin-top:0}
 html[data-v4-mode="ai"] #v4-services .v4-svc-fiber{display:none}
+/* v50 · overlap fixes */
+#sheet-02.step-wide{background:var(--paper);-webkit-backdrop-filter:none;backdrop-filter:none} /* the map no longer shows through as faded "ghost" text */
+#chapter{z-index:0} /* keeps the map chapter in its own layer, so the logo badge on the next section seam is no longer cut in half */
+#sheet-04 .wf-tools:has(.v4-real-wrap:not(.seen) #wfReal:not(:disabled)){padding-bottom:50px} /* room for the pointer so it never covers the text below */
+@media (max-width:959px){.bignum{display:none}} /* the big outlined section numbers no longer sit behind headings on tablets */
+@media (max-width:520px){.atabs [role=tab] small{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.25;letter-spacing:.04em}}
+@media (min-width:641px) and (max-width:1340px){footer.foot .wrap{padding-right:max(104px,env(safe-area-inset-right,0px))}} /* LUMI and the map button don't cover the footer */
+@media (max-width:640px){footer.foot{padding-bottom:calc(170px + env(safe-area-inset-bottom,0px))}}
 /* v45 · "See the real workflow" stands out, with a 3D pointing hand that taps it */
 .v4-real-wrap{position:relative;display:inline-flex}
 #sheet-04 .wf-tools #wfReal{background:var(--ink);border-color:var(--ink);color:var(--white);font-weight:700;animation:v4glow 2.4s ease-in-out infinite}
@@ -2139,13 +2147,15 @@ html[data-v4-mode="ai"] #v4-services .v4-svc-fiber{display:none}
 #sheet-04 .wf-tools #wfReal span{display:inline}
 #sheet-04 .wf-tools #wfReal:hover{background:var(--teal-ink);border-color:var(--teal-ink)}
 @keyframes v4glow{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--lime) 70%,transparent)}50%{box-shadow:0 0 0 7px color-mix(in srgb,var(--lime) 0%,transparent),0 0 18px 2px color-mix(in srgb,var(--lime) 45%,transparent)}}
-.v4-point{position:absolute;z-index:4;right:-6px;top:calc(100% - 10px);width:40px;height:53px;pointer-events:none;filter:drop-shadow(0 6px 5px rgba(24,50,74,.35));transform-origin:50% 0;animation:v4tap 1.6s cubic-bezier(.45,0,.3,1) infinite}
+.v4-point{position:absolute;z-index:4;right:-8px;top:calc(100% - 10px);width:46px;height:60px;pointer-events:none;filter:drop-shadow(0 6px 5px rgba(158,27,44,.32));transform-origin:50% 0;animation:v4tap 1.6s cubic-bezier(.45,0,.3,1) infinite}
 .v4-point svg{display:block;width:100%;height:100%}
-.v4-point::before{content:"";position:absolute;left:50%;top:0;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;border:2px solid var(--lime);opacity:0;animation:v4ring 1.6s ease-out infinite}
+.v4-point::before{content:"";position:absolute;left:50%;top:0;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;border:2px solid #F0424F;opacity:0;animation:v4ring 1.6s ease-out infinite}
 @keyframes v4tap{0%,100%{transform:translate(0,8px) rotate(-14deg)}45%{transform:translate(-2px,0) rotate(-14deg) scale(.96)}55%{transform:translate(-2px,0) rotate(-14deg) scale(.96)}}
 @keyframes v4ring{0%,40%{opacity:0;transform:scale(.4)}50%{opacity:.9;transform:scale(.6)}100%{opacity:0;transform:scale(1.6)}}
 #wfReal:disabled+.v4-point,.v4-real-wrap.seen .v4-point{display:none}
-@media (prefers-reduced-motion:reduce){#sheet-04 .wf-tools #wfReal,.v4-point,.v4-point::before{animation:none}.v4-point{transform:rotate(-14deg)}}
+.v4-point .v4-spark{transform-box:fill-box;transform-origin:center;animation:v4twinkle 1.6s ease-in-out infinite}
+@keyframes v4twinkle{0%,100%{opacity:.35;transform:scale(.7)}50%{opacity:1;transform:scale(1.1)}}
+@media (prefers-reduced-motion:reduce){#sheet-04 .wf-tools #wfReal,.v4-point,.v4-point::before,.v4-point .v4-spark{animation:none}.v4-point{transform:rotate(-14deg)}}
 @media (prefers-reduced-motion:reduce){.v4-flow li,.v4-card,.v4-svc article{transition:none}.v4-card:hover{transform:none}.v4-card:hover .v4-prev-flow .pk{animation:none}}
 </style>
 </head>
@@ -2278,7 +2288,7 @@ html[data-v4-mode="ai"] #v4-services .v4-svc-fiber{display:none}
           </div>
           <dl class="facts">
             <div><dt>Integration Specialist</dt><dd>Live n8n booking automation and FAQ chatbot on this site · portfolio projects</dd></div>
-            <div><dt>Fiber design</dt><dd>9+ yrs OSP/FTTH design, QC and documentation for U.S. telecom teams</dd></div>
+            <div><dt>Fiber Design Engineer</dt><dd>OSP/FTTH design, QC and documentation for U.S. telecom teams</dd></div>
             <div><dt>Base</dt><dd><span class="avail-dot" aria-hidden="true"></span>Remote · Cavite, Philippines · Philippine Time (PHT, UTC+8) · open for projects</dd></div>
           </dl>
           <p class="hint"><i aria-hidden="true"></i><span>The diagram is my booking automation, live on this site. Switch to <b>Map</b>, <b>CAD</b> or <b>Layers</b> for the engineering side.</span></p>
@@ -2291,7 +2301,7 @@ html[data-v4-mode="ai"] #v4-services .v4-svc-fiber{display:none}
           <p class="kicker"><span class="sp"></span>Real projects · live on this site</p>
           <div class="tabs" role="tablist" aria-label="Projects" id="specTabs">
             <button type="button" role="tab" id="tab-ai" aria-selected="true" aria-controls="pane-ai" tabindex="0"><b>01</b>Integration projects<small>live on this site</small></button>
-            <button type="button" role="tab" id="tab-eng" aria-selected="false" aria-controls="pane-eng" tabindex="-1"><b>02</b>Fiber Design<small>8 real samples · 9+ years</small></button>
+            <button type="button" role="tab" id="tab-eng" aria-selected="false" aria-controls="pane-eng" tabindex="-1"><b>02</b>Fiber Design<small>8 real samples</small></button>
             <i class="tab-ind" aria-hidden="true"></i>
           </div>
           <div class="pane" id="pane-ai" role="tabpanel" aria-labelledby="tab-ai">
@@ -2338,7 +2348,7 @@ html[data-v4-mode="ai"] #v4-services .v4-svc-fiber{display:none}
           </div>
           <div class="pane" id="pane-eng" role="tabpanel" aria-labelledby="tab-eng" hidden>
             <div class="pane-main">
-              <p class="statement">Nine-plus years of OSP/FTTH design, QC and documentation, <em>shown in 8 real samples.</em></p>
+              <p class="statement">OSP/FTTH design, QC and documentation, <em>shown in 8 real samples.</em></p>
               <div class="v4-smps"><button class="v4-smp" type="button" data-open="cad" aria-label="Open W-01, Fiber layout on aerial imagery"><img alt="" data-v4-asset="assets/cad-b-thumb.webp" loading="lazy" decoding="async"><span><b>W-01</b>Fiber layout on aerial imagery</span></button><button class="v4-smp" type="button" data-open="gis3" aria-label="Open W-02, Network model in 3GIS"><img alt="" data-v4-asset="assets/gis3-b-thumb.webp" loading="lazy" decoding="async"><span><b>W-02</b>Network model in 3GIS</span></button><button class="v4-smp" type="button" data-open="qgis" aria-label="Open W-03, Route design in QGIS"><img alt="" data-v4-asset="assets/qgis-b-thumb.webp" loading="lazy" decoding="async"><span><b>W-03</b>Route design in QGIS</span></button><button class="v4-smp" type="button" data-open="kat" aria-label="Open W-04, Pole data in Katapult"><img alt="" data-v4-asset="assets/kat-thumb.webp" loading="lazy" decoding="async"><span><b>W-04</b>Pole data in Katapult</span></button><button class="v4-smp" type="button" data-open="bom" aria-label="Open W-05, Master materials list"><img alt="" data-v4-asset="assets/bom-thumb.webp" loading="lazy" decoding="async"><span><b>W-05</b>Master materials list</span></button><button class="v4-smp" type="button" data-open="keymap" aria-label="Open W-06, Sheet layout and key map"><img alt="" data-v4-asset="assets/keymap-thumb.webp" loading="lazy" decoding="async"><span><b>W-06</b>Sheet layout and key map</span></button><button class="v4-smp" type="button" data-open="ge" aria-label="Open W-07, Network overview in Google Earth"><img alt="" data-v4-asset="assets/ge-c-thumb.webp" loading="lazy" decoding="async"><span><b>W-07</b>Network overview in Google Earth</span></button><button class="v4-smp" type="button" data-open="arcgis" aria-label="Open W-08, Span attributes in ArcGIS"><img alt="" data-v4-asset="assets/arcgis-thumb.webp" loading="lazy" decoding="async"><span><b>W-08</b>Span attributes in ArcGIS</span></button></div>
               <p class="v4-note">Real work samples with client details blurred. Select one to zoom, pan and read the notes.</p>
               <div class="ctas"><button class="btn btn-primary mag" type="button" data-go="2" data-atab="samples">Explore the Engineering Atlas <span class="arr" aria-hidden="true">→</span></button></div>
@@ -2346,7 +2356,7 @@ html[data-v4-mode="ai"] #v4-services .v4-svc-fiber{display:none}
             <aside class="pane-side">
               <p class="label">Background</p>
               <ul class="caps">
-                <li>9+ years of professional fiber design engineering</li>
+                <li>Fiber Design Engineer: drawings checked against each client’s drafting standard</li>
                 <li>Remote OSP/FTTH engineering support for U.S. telecom teams</li>
                 <li>Supporting engineering teams and project deliverables end to end</li>
               </ul>
@@ -2364,7 +2374,7 @@ html[data-v4-mode="ai"] #v4-services .v4-svc-fiber{display:none}
             <header class="abox-h">
               <p class="kicker"><span class="sp"></span>Sheet 03 · Engineering atlas</p>
               <h2 tabindex="-1">Engineering Atlas</h2>
-              <p class="lede">Nine-plus years of OSP/FTTH work in one box: the route, the drawing layers, eight real fiber samples and every tool I work in. The map answers to whatever you select.</p>
+              <p class="lede">My OSP/FTTH work in one box: the route, the drawing layers, eight real fiber samples and every tool I work in. The map answers to whatever you select.</p>
             </header>
             <div class="atabs" role="tablist" aria-label="Atlas views" id="atlasTabs">
               <button type="button" role="tab" data-t="route" aria-selected="true" aria-controls="apane-route" tabindex="0">Route<small>4 destinations</small></button>
@@ -2445,7 +2455,7 @@ html[data-v4-mode="ai"] #v4-services .v4-svc-fiber{display:none}
                 <article><span class="label">Service 05</span><h3>Workflow Documentation</h3><p><b>Problem:</b> nobody knows how the automation works.</p><p><b>Solution:</b> simple workflow maps and plain instructions.</p><p><b>Benefit:</b> your team can maintain and update it.</p><p class="v4-q">Custom quote <a href="#sheet-06" data-go-sheet="sheet-06">Discuss this →</a></p></article>
               </div>
 
-        <article class="v4-svc-fiber"><span class="label">Service 06</span><h3>Fiber Network Design &amp; Engineering</h3><p><b>Problem:</b> fiber projects need accurate, standard-compliant drawings on deadline.</p><p><b>Solution:</b> OSP/FTTH design, quality control and technical documentation, remotely.</p><p><b>Benefit:</b> clear, checked deliverables your team can build from.</p><div class="focus v4-focus">
+        <article class="v4-svc-fiber"><span class="label">Service 06</span><h3>Fiber Design Engineering</h3><p><b>Problem:</b> fiber projects need accurate, standard-compliant drawings on deadline.</p><p><b>Solution:</b> OSP/FTTH design, quality control and technical documentation, remotely.</p><p><b>Benefit:</b> clear, checked deliverables your team can build from.</p><div class="focus v4-focus">
                 <div class="focus-card"><span class="label">Deliverable 01</span><h3>OSP / FTTH design</h3><p>Aerial and underground layouts in CAD and GIS, to your drafting standard.</p><span class="status est">Established</span></div>
                 <div class="focus-card"><span class="label">Deliverable 02</span><h3>Design QC</h3><p>Second review of layouts and drawing sets, ride-out QC, clear redlines.</p><span class="status est">Established</span></div>
                 <div class="focus-card"><span class="label">Deliverable 03</span><h3>Technical documentation</h3><p>Construction and permit sets, as-builts, quantities and organized records.</p><span class="status est">Established</span></div>
@@ -2470,14 +2480,14 @@ html[data-v4-mode="ai"] #v4-services .v4-svc-fiber{display:none}
           <h2 id="v4-why-h">Practical Solutions. Reliable Thinking.</h2>
         </header>
         <ul class="v4-why">
-          <li><b>9+ years of engineering experience</b><span>You work with someone used to strict standards, reviews and real deadlines.</span></li>
+          <li><b>Engineering-grade precision</b><span>You work with someone used to strict standards, reviews and real deadlines.</span></li>
           <li><b>A step-by-step way of solving problems</b><span>Problems are broken into clear steps, so fixes are found, not guessed.</span></li>
           <li><b>Strong attention to detail</b><span>Data fields, dates and odd cases get checked before anything goes live.</span></li>
           <li><b>Working demonstrations you can try</b><span>You can see and test a live automation before you decide to work with me.</span></li>
           <li><b>A focus on reliability</b><span>Workflows are tested for tricky cases like time zones, holidays and double bookings.</span></li>
           <li><b>Clear documentation</b><span>You get workflow maps and simple notes, so your team isn't stuck if something changes.</span></li>
         </ul>
-        <p class="v4-note">My nine years are in fiber network engineering. My integration work is newer, and the projects on this site are portfolio projects.</p>
+        <p class="v4-note">My engineering background is in fiber design. My integration work is newer, and the projects on this site are portfolio projects.</p>
       </div>
     </section>
 
@@ -2522,7 +2532,7 @@ html[data-v4-mode="ai"] #v4-services .v4-svc-fiber{display:none}
             <div class="wf-route"><div class="wf-tabs" role="tablist" aria-label="Workflow stations" id="wfTabs"></div></div>
             <div class="wf-tools">
               <button class="mbtn" type="button" id="wfRun"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5Z" fill="currentColor"/></svg><span>Run simulation</span></button>
-              <button class="mbtn" type="button" id="wfJourney"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 12c3-7 5 1 8-5s4-3 4-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="2" cy="12" r="1.7" fill="currentColor"/><circle cx="14" cy="4" r="1.7" fill="currentColor"/></svg><span>Run the journey</span></button><span class="v4-real-wrap"><button class="mbtn mbtn-real" type="button" id="wfReal"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8Z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="2" fill="currentColor"/></svg><span>See the real workflow</span></button><span class="v4-point" aria-hidden="true"><svg viewBox="0 0 64 84"><defs><linearGradient id="v4Skin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE1C4"/><stop offset=".55" stop-color="#F6BE95"/><stop offset="1" stop-color="#D98E62"/></linearGradient><linearGradient id="v4SkinD" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F3B58B"/><stop offset="1" stop-color="#C97B52"/></linearGradient><radialGradient id="v4Shine" cx=".3" cy=".25" r=".6"><stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><rect x="23" y="3" width="15" height="42" rx="7.5" fill="url(#v4Skin)" stroke="#B9724A" stroke-width="1.2"/><rect x="26" y="7" width="5" height="22" rx="2.5" fill="url(#v4Shine)"/><path d="M27 7.5h7" stroke="#fff" stroke-opacity=".7" stroke-width="2" stroke-linecap="round"/><rect x="12" y="34" width="42" height="34" rx="13" fill="url(#v4Skin)" stroke="#B9724A" stroke-width="1.2"/><path d="M38 38v12M46 39v11" stroke="#C47F57" stroke-width="1.6" stroke-linecap="round"/><rect x="5" y="40" width="20" height="13" rx="6.5" transform="rotate(-24 15 46)" fill="url(#v4SkinD)" stroke="#B9724A" stroke-width="1.2"/><ellipse cx="24" cy="44" rx="10" ry="6" fill="url(#v4Shine)"/><rect x="16" y="64" width="34" height="16" rx="4" fill="#18324A"/><rect x="16" y="64" width="34" height="4" fill="#C4D94E"/></svg></span></span><button class="mbtn" type="button" id="wfFit" title="Fit to view"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 5.5v-4h4M10.5 1.5h4v4M14.5 10.5v4h-4M5.5 14.5h-4v-4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg><span>Fit</span></button>
+              <button class="mbtn" type="button" id="wfJourney"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 12c3-7 5 1 8-5s4-3 4-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="2" cy="12" r="1.7" fill="currentColor"/><circle cx="14" cy="4" r="1.7" fill="currentColor"/></svg><span>Run the journey</span></button><span class="v4-real-wrap"><button class="mbtn mbtn-real" type="button" id="wfReal"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8Z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="2" fill="currentColor"/></svg><span>See the real workflow</span></button><span class="v4-point" aria-hidden="true"><svg viewBox="0 0 64 84"><defs><linearGradient id="v4Red" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF8A8A"/><stop offset=".5" stop-color="#F0424F"/><stop offset="1" stop-color="#C8243A"/></linearGradient><linearGradient id="v4RedD" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F45663"/><stop offset="1" stop-color="#C21F36"/></linearGradient><radialGradient id="v4Shine" cx=".3" cy=".25" r=".6"><stop offset="0" stop-color="#fff" stop-opacity=".85"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><g class="v4-spark" fill="#FFD43B" stroke="#E0A800" stroke-width=".6"><path d="M43 4l1.6 3.4L48 9l-3.4 1.6L43 14l-1.6-3.4L38 9l3.4-1.6z"/><path d="M52 15l.9 1.9 1.9.9-1.9.9-.9 1.9-.9-1.9-1.9-.9 1.9-.9z"/></g><rect x="31" y="26" width="10" height="15" rx="5" fill="url(#v4RedD)" stroke="#9E1B2C" stroke-width="1.2"/><rect x="39.5" y="28" width="9.5" height="14" rx="4.75" fill="url(#v4RedD)" stroke="#9E1B2C" stroke-width="1.2"/><rect x="47" y="31" width="9" height="13" rx="4.5" fill="url(#v4RedD)" stroke="#9E1B2C" stroke-width="1.2"/><rect x="16" y="3" width="15" height="40" rx="7.5" fill="url(#v4Red)" stroke="#9E1B2C" stroke-width="1.2"/><rect x="19" y="7" width="4.5" height="18" rx="2.25" fill="#fff" fill-opacity=".55"/><rect x="12" y="32" width="44" height="33" rx="15" fill="url(#v4Red)" stroke="#9E1B2C" stroke-width="1.2"/><ellipse cx="26" cy="39" rx="11" ry="6" fill="url(#v4Shine)"/><rect x="5" y="41" width="22" height="12" rx="6" transform="rotate(-22 16 47)" fill="url(#v4RedD)" stroke="#9E1B2C" stroke-width="1.2"/><circle cx="33" cy="50" r="2.3" fill="#3B0B14"/><circle cx="44" cy="50" r="2.3" fill="#3B0B14"/><circle cx="33.8" cy="49.2" r=".8" fill="#fff"/><circle cx="44.8" cy="49.2" r=".8" fill="#fff"/><path d="M36 54.5q2.5 2.6 5 0" fill="none" stroke="#3B0B14" stroke-width="1.5" stroke-linecap="round"/><ellipse cx="28.5" cy="55" rx="3.2" ry="2" fill="#FFB3C1" fill-opacity=".85"/><ellipse cx="49" cy="55" rx="3.2" ry="2" fill="#FFB3C1" fill-opacity=".85"/><rect x="14" y="63" width="40" height="16" rx="6" fill="#fff" stroke="#9E1B2C" stroke-width="1.2"/><path d="M18 69h32M18 73h32" stroke="#F2C4CB" stroke-width="1.4" stroke-linecap="round"/></svg></span></span><button class="mbtn" type="button" id="wfFit" title="Fit to view"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 5.5v-4h4M10.5 1.5h4v4M14.5 10.5v4h-4M5.5 14.5h-4v-4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg><span>Fit</span></button>
             </div>
           </div>
           <div class="wf-sum" id="wfSum" aria-live="polite"></div>
@@ -2609,7 +2619,7 @@ html[data-v4-mode="ai"] #v4-services .v4-svc-fiber{display:none}
           <div>
             <p class="statement rv">I help businesses connect their software tools and <em>simplify repetitive work.</em></p>
             <div class="about-body rv short">
-              <p>I’m an Integration Specialist focused on helping businesses connect their software tools and simplify repetitive work. With over nine years of professional engineering experience in fiber network design, I bring a structured, detail-oriented approach to building practical automation solutions.</p>
+              <p>I’m an Integration Specialist focused on helping businesses connect their software tools and simplify repetitive work. As a Fiber Design Engineer with 9+ years of professional experience, I bring a structured, detail-oriented approach to building practical automation solutions.</p>
             </div>
             <div class="about-cta"><a class="btn btn-primary mag" href="https://canva.link/iwatahjxg40szb8" target="_blank" rel="noopener">View My Resume ↗</a><a class="btn btn-line mag" href="#sheet-06" data-go-sheet="sheet-06">Discuss Your Project</a></div>
           </div>
@@ -2633,7 +2643,7 @@ html[data-v4-mode="ai"] #v4-services .v4-svc-fiber{display:none}
             <h2 id="h-contact" style="margin-top:18px">Let’s Connect Your Business Tools.</h2>
             <p class="intro">Tell me which applications you use and what repetitive task is slowing your team down. Let’s explore a practical integration solution. Use the form to send a message or pick a time for a free call. All times are Philippine Time (PHT, UTC+8).</p>
             <dl class="crow-list">
-              <div class="crow"><dt>Email</dt><dd><a class="cval" id="emailTxt" href="mailto:margarethcondes.mc@gmail.com">margarethcondes.mc@gmail.com</a></dd><button class="tbtn" type="button" id="copyEmail">Copy</button></div>
+              <div class="crow"><dt>Email</dt><dd><a class="cval" id="emailTxt" href="mailto:margarethcondes.mc@gmail.com">margarethcondes.mc@<wbr>gmail.com</a></dd><button class="tbtn" type="button" id="copyEmail">Copy</button></div>
               <div class="crow"><dt>LinkedIn</dt><dd><a class="cval" href="https://www.linkedin.com/in/margareth-c/" target="_blank" rel="noopener">linkedin.com/in/margareth-c</a></dd><a class="tbtn" href="https://www.linkedin.com/in/margareth-c/" target="_blank" rel="noopener">Open ↗</a></div>
               <div class="crow"><dt>Résumé</dt><dd><a class="cval" href="https://canva.link/iwatahjxg40szb8" target="_blank" rel="noopener">View my résumé</a></dd><a class="tbtn" href="https://canva.link/iwatahjxg40szb8" target="_blank" rel="noopener">Open ↗</a></div>
               <div class="crow"><dt>Base</dt><dd><span class="cplain"><span class="avail-dot" aria-hidden="true"></span>Cavite, Philippines · Philippine Time (PHT, UTC+8) · calls Mon–Fri, any hour PHT</span></dd><span></span></div>
@@ -4399,7 +4409,7 @@ function updateSheet(){
 const bigs=$$('.bignum');
 function updateParallax(){
   if(reduce||!DESK.matches){bigs.forEach(b=>b.style.transform='');return;}
-  bigs.forEach(b=>{const s=b.parentElement.getBoundingClientRect();if(s.bottom<-200||s.top>innerHeight+200)return;const c=(s.top+Math.min(s.height,innerHeight)/2-innerHeight/2);b.style.transform=`translateY(${f(c*-.12)}px)`;});
+  bigs.forEach(b=>{const s=b.parentElement.getBoundingClientRect();if(s.bottom<-200||s.top>innerHeight+200)return;const c=(s.top+Math.min(s.height,innerHeight)/2-innerHeight/2);b.style.transform=`translateY(${f(Math.min(0,c*-.12))}px)`;});
 }
 let uiTick=false;
 function scrollUI(){if(uiTick)return;uiTick=true;requestAnimationFrame(()=>{uiTick=false;updateSheet();updateRail();updateParallax();});}
@@ -4790,7 +4800,7 @@ const TK=[
 const appIcon=(ic,cat,cls='')=>`<span class="tk-app c-${['ainow','aiprac','ainext'].includes(cat)?'learn':cat==='platform'?'proj':cat}${['cad','gis','maps','proj','platform'].includes(cat)?' dk':''}${cls}"><svg class="tk-art" viewBox="0 0 64 64" aria-hidden="true" focusable="false">${PG[ic]}</svg></span>`;
 /* ================= ENGINEERING ATLAS BOX (route · layers · samples) ================= */
 const DEST=[
- {id:1,title:'Fiber Network Design',st:'est',badge:'Established · 9+ years',lede:'OSP and FTTH layouts for aerial and underground builds, drawn to the client’s standard and ready for the next team in line.',caps:['Aerial and underground layouts, conduit routes and access points','Survey data, imagery, GIS data and markups turned into clean CAD drawings','Network features in 3GIS and QGIS: routes, structures, splices, drops'],tools:['AutoCAD','Civil 3D','QGIS','3GIS','ArcGIS','Google Earth','Katapult'],samples:['cad','keymap','gis3','qgis','ge']},
+ {id:1,title:'Fiber Network Design',st:'est',badge:'Established',lede:'OSP and FTTH layouts for aerial and underground builds, drawn to the client’s standard and ready for the next team in line.',caps:['Aerial and underground layouts, conduit routes and access points','Survey data, imagery, GIS data and markups turned into clean CAD drawings','Network features in 3GIS and QGIS: routes, structures, splices, drops'],tools:['AutoCAD','Civil 3D','QGIS','3GIS','ArcGIS','Google Earth','Katapult'],samples:['cad','keymap','gis3','qgis','ge']},
  {id:2,title:'Design Quality Control',st:'est',badge:'Established',lede:'A careful second review before drawings go out: details checked, inconsistencies traced, findings the design team can act on quickly.',caps:['Technical review of layouts and drawing sets, including ride-out QC','Drawing accuracy checked against client drafting standards','Mapping data validated against imagery and field data; clear redlines'],tools:['AutoCAD','Google Earth','Nearmap','Katapult','Excel'],samples:['arcgis','kat','ge']},
  {id:3,title:'Technical Documentation',st:'est',badge:'Established',lede:'Drawings and records that hold up after the project moves on. Switch the map to CAD to see the drawing standard take over.',caps:['Construction and permit drawing sets, as-built documentation','Rights-of-way and existing infrastructure, to NCDOT standards where they apply','Bills of materials and quantities (BOM / BOQ), organized CAD files'],tools:['AutoCAD','Civil 3D','QGIS','NCDOT maps','Excel','Google Sheets'],samples:['bom','keymap'],cad:true},
  {id:4,title:'Project Systems',st:'est',badge:'Established · the bridge',lede:'Trackers and spreadsheets that show where every job stands. Clean, consistent records are what any later automation reads.',caps:['Project tracking for design jobs: status, counts and deliverables','Process documentation and checklists','Consistent naming and status fields, readable by people now and tools later'],tools:['Smartsheet','Monday.com','VantagePoint','Zoho','Excel','Google Sheets'],samples:[]},
@@ -4847,7 +4857,7 @@ ${first?`<figure class="sample"><button class="sample-open" type="button" data-o
 {
   const root=$('#atools');
   if(root){
-    const HOW={ainow:'Used most days for drafting, checking and research. Using a tool is not the same as mastering it.',aiprac:'Practised in the appointment-booking prototype on this site: the availability check is verified, the rest is in development.',ainext:'On my list, not in practice yet.',platform:'Hosts this portfolio.',cad:'Daily, for 9+ years: construction, permit and as-built drawings to each client’s standard.',gis:'Daily: network features, routes and project layers.',maps:'Reference and checking data for designs and QC.',proj:'Tracking, records and team communication on remote projects.',office:'Reports, spreadsheets and visuals.'};
+    const HOW={ainow:'Used most days for drafting, checking and research. Using a tool is not the same as mastering it.',aiprac:'Practised in the appointment-booking prototype on this site: the availability check is verified, the rest is in development.',ainext:'On my list, not in practice yet.',platform:'Hosts this portfolio.',cad:'Daily: construction, permit and as-built drawings to each client’s standard.',gis:'Daily: network features, routes and project layers.',maps:'Reference and checking data for designs and QC.',proj:'Tracking, records and team communication on remote projects.',office:'Reports, spreadsheets and visuals.'};
     /* what the map does when a group is chosen: lift a layer, switch to CAD, or show the workflow */
     const FX={cad:{morph:1},gis:{explode:1,hl:'net'},maps:{explode:1,hl:'geo'},proj:{explode:1,hl:'ann'},office:{explode:1,hl:'ann'},ainow:{flow:1},aiprac:{flow:1},ainext:{flow:1},platform:{}};
     const FXT={cad:'The map turns into the CAD sheet these tools produce.',gis:'The fiber network layer (L3) lifts off the stack.',maps:'The geography layer (L1), ground truth for every design, lifts off the stack.',proj:'The annotations layer (L4): quantities, status and review notes.',office:'The annotations layer (L4): quantities, status and review notes.',ainow:'The network becomes a workflow: the same route, drawn as nodes.',aiprac:'The booking check as a workflow: webhook, fields, calendar read, IF, respond.',ainext:'Shown as a workflow. Nothing here runs live.',platform:'Back to the full map.'};
