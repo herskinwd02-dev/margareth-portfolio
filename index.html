@@ -2082,6 +2082,56 @@ footer.foot .foot-end{margin-top:12px;font-size:11px}
 .v4-svc p b{font-weight:650;color:var(--ink)}
 .v4-svc .v4-q{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:6px;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .v4-svc .v4-q a{color:var(--teal-ink);text-decoration:none;border-bottom:1px solid currentColor;font-family:var(--f-body);font-size:13px;letter-spacing:0;text-transform:none;font-weight:600}
+/* v46 · real projects right under the hero (Sheet 02), services moved to their own section */
+.v4-rp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:1100px){.v4-rp{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.v4-rp{grid-template-columns:minmax(0,1fr)}}
+.v4-rcard{display:flex;flex-direction:column;gap:8px;padding:12px 14px 14px;border:1.5px solid var(--ink);border-radius:16px;background:var(--white);min-width:0}
+.v4-rcard h3{font-family:var(--f-display);font-size:19px;line-height:1.15}
+.v4-shot{position:relative;display:block;width:100%;aspect-ratio:16/7;padding:0;border:1px solid var(--line-2);border-radius:10px;overflow:hidden;background:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:16px 16px;cursor:zoom-in;font:inherit;color:inherit}
+.v4-shot img{display:block;width:100%;height:100%;object-fit:cover;object-position:left center;transition:transform .5s var(--ease-out)}
+.v4-shot:hover img{transform:scale(1.04)}
+.v4-shot:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
+.v4-shot .zoom-chip{right:8px;bottom:8px;font-size:11px;padding:5px 8px 4px}
+.v4-shot:hover .zoom-chip{background:var(--teal)}
+.v4-shot-tag{position:absolute;left:8px;top:8px;background:var(--lime);color:var(--ink);font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:4px 7px 3px;border-radius:3px;border:1px solid var(--ink)}
+.v4-shot-lumi{cursor:default;display:grid;place-items:center}
+.v4-shot-lumi svg{width:100%;height:100%}
+.v4-bra{margin:0;display:grid;gap:6px}
+.v4-bra div{display:grid;grid-template-columns:62px minmax(0,1fr);gap:8px;font-size:13.5px;line-height:1.42}
+.v4-bra dt{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal-ink);padding-top:2px;font-weight:600}
+.v4-bra dd{margin:0;color:var(--ink-2)}
+.v4-rcard .v4-act{gap:10px}
+.v4-also{margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-family:var(--f-mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.v4-also button{font:inherit;font-family:var(--f-body);font-size:14px;letter-spacing:0;text-transform:none;font-weight:600;color:var(--teal-ink);background:none;border:0;border-bottom:1px solid currentColor;padding:0;cursor:pointer}
+.v4-also em{font-style:normal;font-family:var(--f-body);font-size:13px;letter-spacing:0;text-transform:none;flex-basis:100%}
+@media (min-width:700px){.v4-also em{flex-basis:auto}}
+#pane-ai .v4-note,#pane-eng .v4-note{margin:0}
+.v4-smps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:640px){.v4-smps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.v4-smp{display:flex;flex-direction:column;padding:0;border:1.5px solid var(--line-2);border-radius:12px;overflow:hidden;background:var(--white);cursor:zoom-in;font:inherit;color:inherit;text-align:left;transition:border-color .3s,box-shadow .3s}
+.v4-smp:hover,.v4-smp:focus-visible{border-color:var(--ink);box-shadow:0 0 0 4px var(--teal-wash);outline:none}
+.v4-smp img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--paper-2)}
+.v4-smp span{display:grid;gap:2px;padding:7px 9px 8px;font-size:12.5px;line-height:1.3;color:var(--ink-2)}
+.v4-smp b{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;color:var(--teal-ink)}
+#v4-services .v4-svc{margin-top:0}
+.v4-svc-fiber{display:grid;gap:6px;margin-top:12px;padding:14px 16px;border:1.5px solid var(--line-2);border-radius:14px;background:var(--white)}
+.v4-svc-fiber h3{font-family:var(--f-display);font-size:17px;line-height:1.2}
+.v4-svc-fiber .label{font-size:11px}
+.v4-svc-fiber>p{margin:0;font-size:14px;line-height:1.45;color:var(--ink-2)}
+.v4-svc-fiber>p b{font-weight:650;color:var(--ink)}
+.v4-svc-fiber .v4-focus{margin-top:6px}
+.v4-svc-fiber .v4-q{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin:4px 0 0;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.v4-svc-fiber .v4-q a{color:var(--teal-ink);text-decoration:none;border-bottom:1px solid currentColor;font-family:var(--f-body);font-size:13px;letter-spacing:0;text-transform:none;font-weight:600}
+.v4-svc-side{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(0,1fr);gap:16px 28px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line-2)}
+.v4-svc-side .v4-side-n{margin:0;align-self:start}
+@media (max-width:900px){.v4-svc-side{grid-template-columns:minmax(0,1fr)}}
+#v4-services .ctas{margin-top:22px}
+@media (prefers-reduced-motion:reduce){.v4-shot img,.v4-smp{transition:none}.v4-shot:hover img{transform:none}}
+/* v47 · the Sheet 02 tabs decide what shows below: Integration → AI & automation only, Fiber Design → engineering only */
+html[data-v4-mode="eng"] #v4-services .v4-svc,html[data-v4-mode="eng"] #v4-services .v4-svc-side{display:none}
+html[data-v4-mode="eng"] #v4-services .v4-svc-fiber{margin-top:0}
+html[data-v4-mode="ai"] #v4-services .v4-svc-fiber{display:none}
 /* v45 · "See the real workflow" stands out, with a 3D pointing hand that taps it */
 .v4-real-wrap{position:relative;display:inline-flex}
 #sheet-04 .wf-tools #wfReal{background:var(--ink);border-color:var(--ink);color:var(--white);font-weight:700;animation:v4glow 2.4s ease-in-out infinite}
@@ -2122,8 +2172,8 @@ footer.foot .foot-end{margin-top:12px;font-size:11px}
     </a>
     <nav class="links" aria-label="Sections">
       <a href="#sheet-01" data-go-sheet="sheet-01" data-for="01">Home</a>
-      <a href="#sheet-02" data-go-sheet="sheet-02" data-for="02">Services</a>
-      <a href="#v4-projects" data-go-sheet="v4-projects" data-for="WORK">Projects</a>
+      <a href="#v4-services" data-go-sheet="v4-services" data-for="SVC">Services</a>
+      <a href="#sheet-02" data-go-sheet="sheet-02" data-for="02">Projects</a>
       <a href="#sheet-05" data-go-sheet="sheet-05" data-for="05">About</a>
       <a href="#sheet-06" data-go-sheet="sheet-06" data-for="06">Contact</a>
       <a href="#sheet-03" data-go-sheet="sheet-03" hidden tabindex="-1" aria-hidden="true">Engineering Atlas</a><a href="#sheet-04" data-go-sheet="sheet-04" hidden tabindex="-1" aria-hidden="true">AI workspace</a><!-- v43: hidden shortcuts used by LUMI's tour and the specialty switch -->
@@ -2135,8 +2185,8 @@ footer.foot .foot-end{margin-top:12px;font-size:11px}
   <div class="menu" id="menu" hidden>
     <ol>
       <li><a href="#sheet-01" data-go-sheet="sheet-01"><b>01</b><span>Home</span></a></li>
-      <li><a href="#sheet-02" data-go-sheet="sheet-02"><b>02</b><span>Services</span></a></li>
-      <li><a href="#v4-projects" data-go-sheet="v4-projects"><b>03</b><span>Projects</span></a></li>
+      <li><a href="#sheet-02" data-go-sheet="sheet-02"><b>02</b><span>Projects</span></a></li>
+      <li><a href="#v4-services" data-go-sheet="v4-services"><b>03</b><span>Services</span></a></li>
       <li><a href="#sheet-05" data-go-sheet="sheet-05"><b>04</b><span>About</span></a></li>
       <li><a href="#sheet-06" data-go-sheet="sheet-06"><b>05</b><span>Contact &amp; booking</span></a></li>
     </ol>
@@ -2223,7 +2273,7 @@ footer.foot .foot-end{margin-top:12px;font-size:11px}
           <p class="hero-copy">I connect business apps and automate repetitive processes so your team spends less time copying data, fixing errors, and managing disconnected systems.</p>
           <p class="v4-tools">n8n<span>·</span>Webhooks<span>·</span>Google Workspace<span>·</span>Business Integrations</p>
           <div class="ctas">
-            <a class="btn btn-primary mag" href="#v4-featured" data-go-sheet="v4-featured">Explore My Work <span class="arr" aria-hidden="true">→</span></a>
+            <a class="btn btn-primary mag" href="#sheet-02" data-go-sheet="sheet-02">Explore My Work <span class="arr" aria-hidden="true">→</span></a>
             <a class="btn btn-line mag" href="#sheet-06" data-go-sheet="sheet-06">Discuss Your Project</a>
           </div>
           <dl class="facts">
@@ -2236,43 +2286,62 @@ footer.foot .foot-end{margin-top:12px;font-size:11px}
       </article>
 
       <!-- 02 specialties (full width) -->
-      <article class="step step-wide" id="sheet-02" data-step="1" data-sheet="02" data-sheet-name="Specialties">
+      <article class="step step-wide" id="sheet-02" data-step="1" data-sheet="02" data-sheet-name="Projects">
         <div class="wide-in">
-          <p class="kicker"><span class="sp"></span>Services · custom-quoted</p>
-          <div class="tabs" role="tablist" aria-label="Specialties" id="specTabs">
-            <button type="button" role="tab" id="tab-ai" aria-selected="true" aria-controls="pane-ai" tabindex="0"><b>01</b>Integration &amp; Automation<small>5 services</small></button>
-            <button type="button" role="tab" id="tab-eng" aria-selected="false" aria-controls="pane-eng" tabindex="-1"><b>02</b>Fiber Network Design &amp; Engineering<small>9+ years</small></button>
+          <p class="kicker"><span class="sp"></span>Real projects · live on this site</p>
+          <div class="tabs" role="tablist" aria-label="Projects" id="specTabs">
+            <button type="button" role="tab" id="tab-ai" aria-selected="true" aria-controls="pane-ai" tabindex="0"><b>01</b>Integration projects<small>live on this site</small></button>
+            <button type="button" role="tab" id="tab-eng" aria-selected="false" aria-controls="pane-eng" tabindex="-1"><b>02</b>Fiber Design<small>8 real samples · 9+ years</small></button>
             <i class="tab-ind" aria-hidden="true"></i>
           </div>
           <div class="pane" id="pane-ai" role="tabpanel" aria-labelledby="tab-ai">
             <div class="pane-main">
-              <p class="statement">What I Can Connect and <em>Automate for Your Business</em></p>
-              <div class="v4-svc">
-                <article><span class="label">Service 01</span><h3>Business Software Integration</h3><p><b>Problem:</b> your apps don't share information.</p><p><b>Solution:</b> I connect compatible tools like CRMs, email, spreadsheets and calendars.</p><p><b>Benefit:</b> data moves on its own, with less copy and paste.</p><p class="v4-q">Custom quote <a href="#sheet-06" data-go-sheet="sheet-06">Discuss this →</a></p></article>
-                <article><span class="label">Service 02</span><h3>Workflow Automation</h3><p><b>Problem:</b> the same admin steps, every day.</p><p><b>Solution:</b> automated workflows in n8n that run the routine steps for you.</p><p><b>Benefit:</b> less repetitive work and fewer missed steps.</p><p class="v4-q">Custom quote <a href="#sheet-06" data-go-sheet="sheet-06">Discuss this →</a></p></article>
-                <article><span class="label">Service 03</span><h3>Webhook &amp; Data Integration</h3><p><b>Problem:</b> updates arrive late, or not at all.</p><p><b>Solution:</b> webhooks and mapped data fields that pass information between apps.</p><p><b>Benefit:</b> faster updates and fewer typing errors.</p><p class="v4-q">Custom quote <a href="#sheet-06" data-go-sheet="sheet-06">Discuss this →</a></p></article>
-                <article><span class="label">Service 04</span><h3>Automation Troubleshooting</h3><p><b>Problem:</b> a workflow breaks or acts strangely.</p><p><b>Solution:</b> I test it step by step, find the cause and fix it.</p><p><b>Benefit:</b> automations you can rely on.</p><p class="v4-q">Custom quote <a href="#sheet-06" data-go-sheet="sheet-06">Discuss this →</a></p></article>
-                <article><span class="label">Service 05</span><h3>Workflow Documentation</h3><p><b>Problem:</b> nobody knows how the automation works.</p><p><b>Solution:</b> simple workflow maps and plain instructions.</p><p><b>Benefit:</b> your team can maintain and update it.</p><p class="v4-q">Custom quote <a href="#sheet-06" data-go-sheet="sheet-06">Discuss this →</a></p></article>
+              <p class="statement">What I built, <em>what it does, and proof that it works.</em></p>
+              <div class="v4-rp">
+                <article class="v4-rcard">
+                  <button class="v4-shot" type="button" data-open="wfs-booking" aria-label="Open the real Book and confirm workflow screenshot (watermarked, private details blurred)"><img alt="" data-v4-asset="assets/wfs-booking-thumb.webp" width="1540" height="398" loading="lazy" decoding="async"><span class="v4-shot-tag">Real n8n workflow · IDs blurred</span><span class="zoom-chip"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m10.5 10.5 3.5 3.5" stroke="currentColor" stroke-width="1.6"/></svg>Open</span></button>
+                  <p class="v4-tag">Integration · live on this site</p>
+                  <h3>Appointment Booking Automation</h3>
+                  <dl class="v4-bra">
+                    <div><dt>Built</dt><dd>A website booking form connected through n8n to Google Calendar, Google Meet, Google Sheets and Gmail.</dd></div>
+                    <div><dt>Result</dt><dd>A visitor books a free call on their own. The calendar event, the Meet link, the booking record and the confirmation emails are created automatically.</dd></div>
+                    <div><dt>Proof</dt><dd>It runs the booking calendar at the bottom of this page.</dd></div>
+                  </dl>
+                  <div class="v4-act"><button class="btn btn-primary btn-sm" type="button" data-open="wfs-booking">See the real workflow</button><button class="tbtn" type="button" data-v4-station="1">How it works →</button></div>
+                </article>
+                <article class="v4-rcard">
+                  <button class="v4-shot" type="button" data-open="wfs-avail" aria-label="Open the real Availability check workflow screenshot (watermarked, private details blurred)"><img alt="" data-v4-asset="assets/wfs-avail-thumb.webp" width="1240" height="238" loading="lazy" decoding="async"><span class="v4-shot-tag">Real n8n workflow · IDs blurred</span><span class="zoom-chip"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m10.5 10.5 3.5 3.5" stroke="currentColor" stroke-width="1.6"/></svg>Open</span></button>
+                  <p class="v4-tag">Integration · live on this site</p>
+                  <h3>Availability Checker</h3>
+                  <dl class="v4-bra">
+                    <div><dt>Built</dt><dd>An n8n workflow that reads Google Calendar (read-only) and applies the booking rules.</dd></div>
+                    <div><dt>Result</dt><dd>Only free weekday times appear. Busy times, weekends and Philippine holidays are blocked before anyone books.</dd></div>
+                    <div><dt>Proof</dt><dd>It checks my calendar each time someone picks a date in my booking form.</dd></div>
+                  </dl>
+                  <div class="v4-act"><button class="btn btn-primary btn-sm" type="button" data-open="wfs-avail">See the real workflow</button><button class="tbtn" type="button" data-v4-station="0">How it works →</button></div>
+                </article>
+                <article class="v4-rcard">
+                  <div class="v4-shot v4-shot-lumi" aria-hidden="true"><svg viewBox="0 0 320 120"><rect x="34" y="16" width="170" height="30" rx="12" fill="var(--paper-3)"/><rect x="128" y="54" width="158" height="26" rx="12" fill="var(--ink)"/><rect x="34" y="88" width="120" height="22" rx="10" fill="var(--paper-3)"/><circle cx="54" cy="99" r="3" fill="var(--muted)"/><circle cx="66" cy="99" r="3" fill="var(--muted)"/><circle cx="78" cy="99" r="3" fill="var(--muted)"/></svg><span class="v4-shot-tag">Live now · bottom right of the page</span></div>
+                  <p class="v4-tag">FAQ chatbot · live on this site</p>
+                  <h3>LUMI, FAQ Chatbot</h3>
+                  <dl class="v4-bra">
+                    <div><dt>Built</dt><dd>A small chatbot that matches questions to prepared answers, right in the browser.</dd></div>
+                    <div><dt>Result</dt><dd>Visitors get quick answers to common questions at any hour, and nothing typed is saved or sent.</dd></div>
+                    <div><dt>Proof</dt><dd>She's live on this page. Ask her something.</dd></div>
+                  </dl>
+                  <div class="v4-act"><button class="btn btn-primary btn-sm" type="button" data-v4-lumi>Chat with LUMI</button></div>
+                </article>
               </div>
-              <div class="ctas"><a class="btn btn-primary mag" href="#v4-featured" data-go-sheet="v4-featured">See my integrations in action <span class="arr" aria-hidden="true">→</span></a><a class="btn btn-line" href="#sheet-06" data-go-sheet="sheet-06">Discuss Your Project</a></div>
+              <p class="v4-also">Also live: <button type="button" data-open="wfs-remind">Reminders</button><span>·</span><button type="button" data-open="wfs-resched">Reschedule</button><span>·</span><button type="button" data-open="wfs-cancel">Cancel</button><em>Real n8n workflows, watermarked, private details blurred.</em></p>
+              <p class="v4-note">Portfolio projects that run on this site, not paid client work.</p>
             </div>
-            <aside class="pane-side">
-              <div class="v4-side-g"><p class="label">Built for</p>
-              <div class="tools"><span class="tool">SaaS companies</span><span class="tool">Growing SMBs</span><span class="tool">Agencies</span><span class="tool">Service businesses</span><span class="tool">Teams with disconnected tools</span></div></div>
-              <div class="v4-side-g"><p class="label">Tools I use</p>
-              <div class="tools"><span class="tool">n8n</span><span class="tool">Webhooks</span><span class="tool">Google Calendar</span><span class="tool">Google Sheets</span><span class="tool">Gmail</span></div></div>
-              <p class="note-dev v4-side-n">Shown in portfolio projects live on this site, not paid client work. Make and Zapier are next on my learning list. Coming later: website maintenance and AI agent development.</p>
-            </aside>
           </div>
           <div class="pane" id="pane-eng" role="tabpanel" aria-labelledby="tab-eng" hidden>
             <div class="pane-main">
-              <p class="statement"><span class="label" style="display:block;margin-bottom:8px">Service 06 · custom quote</span>Keep your fiber projects moving with <em>reliable remote engineering support.</em> From OSP/FTTH design to technical documentation and quality checks, help your team manage design deliverables with greater accuracy and consistency.</p>
-              <div class="focus">
-                <div class="focus-card"><span class="label">Deliverable 01</span><h3>OSP / FTTH design</h3><p>Aerial and underground layouts in CAD and GIS, to your drafting standard.</p><span class="status est">Established</span></div>
-                <div class="focus-card"><span class="label">Deliverable 02</span><h3>Design QC</h3><p>Second review of layouts and drawing sets, ride-out QC, clear redlines.</p><span class="status est">Established</span></div>
-                <div class="focus-card"><span class="label">Deliverable 03</span><h3>Technical documentation</h3><p>Construction and permit sets, as-builts, quantities and organized records.</p><span class="status est">Established</span></div>
-              </div>
-              <div class="ctas"><button class="btn btn-primary mag" type="button" data-go="2" data-atab="samples">See 8 real samples <span class="arr" aria-hidden="true">→</span></button><button class="btn btn-line" type="button" data-go="2">Explore the atlas</button></div>
+              <p class="statement">Nine-plus years of OSP/FTTH design, QC and documentation, <em>shown in 8 real samples.</em></p>
+              <div class="v4-smps"><button class="v4-smp" type="button" data-open="cad" aria-label="Open W-01, Fiber layout on aerial imagery"><img alt="" data-v4-asset="assets/cad-b-thumb.webp" loading="lazy" decoding="async"><span><b>W-01</b>Fiber layout on aerial imagery</span></button><button class="v4-smp" type="button" data-open="gis3" aria-label="Open W-02, Network model in 3GIS"><img alt="" data-v4-asset="assets/gis3-b-thumb.webp" loading="lazy" decoding="async"><span><b>W-02</b>Network model in 3GIS</span></button><button class="v4-smp" type="button" data-open="qgis" aria-label="Open W-03, Route design in QGIS"><img alt="" data-v4-asset="assets/qgis-b-thumb.webp" loading="lazy" decoding="async"><span><b>W-03</b>Route design in QGIS</span></button><button class="v4-smp" type="button" data-open="kat" aria-label="Open W-04, Pole data in Katapult"><img alt="" data-v4-asset="assets/kat-thumb.webp" loading="lazy" decoding="async"><span><b>W-04</b>Pole data in Katapult</span></button><button class="v4-smp" type="button" data-open="bom" aria-label="Open W-05, Master materials list"><img alt="" data-v4-asset="assets/bom-thumb.webp" loading="lazy" decoding="async"><span><b>W-05</b>Master materials list</span></button><button class="v4-smp" type="button" data-open="keymap" aria-label="Open W-06, Sheet layout and key map"><img alt="" data-v4-asset="assets/keymap-thumb.webp" loading="lazy" decoding="async"><span><b>W-06</b>Sheet layout and key map</span></button><button class="v4-smp" type="button" data-open="ge" aria-label="Open W-07, Network overview in Google Earth"><img alt="" data-v4-asset="assets/ge-c-thumb.webp" loading="lazy" decoding="async"><span><b>W-07</b>Network overview in Google Earth</span></button><button class="v4-smp" type="button" data-open="arcgis" aria-label="Open W-08, Span attributes in ArcGIS"><img alt="" data-v4-asset="assets/arcgis-thumb.webp" loading="lazy" decoding="async"><span><b>W-08</b>Span attributes in ArcGIS</span></button></div>
+              <p class="v4-note">Real work samples with client details blurred. Select one to zoom, pan and read the notes.</p>
+              <div class="ctas"><button class="btn btn-primary mag" type="button" data-go="2" data-atab="samples">Explore the Engineering Atlas <span class="arr" aria-hidden="true">→</span></button></div>
             </div>
             <aside class="pane-side">
               <p class="label">Background</p>
@@ -2354,67 +2423,42 @@ footer.foot .foot-end{margin-top:12px;font-size:11px}
         <div class="v4-feat-foot">
           <div class="ctas">
             <a class="btn btn-primary mag" href="#sheet-06" data-go-sheet="sheet-06">Try the Live Demo <span class="arr" aria-hidden="true">→</span></a>
-            <button class="btn btn-line" type="button" data-v4-station="1">See how it works</button>
+            <button class="btn btn-line" type="button" data-open="wfs-booking">See the real workflow</button><button class="btn btn-line" type="button" data-v4-station="1">See how it works</button>
           </div>
           <p class="v4-note">The live demo is the real booking form at the bottom of this page. It books a real free call with me, so only use it if you'd like to talk.</p>
         </div>
       </div>
     </section>
 
-    <!-- v43 · projects -->
-    <section class="sheet v4-sec" id="v4-projects" data-sheet="WORK" data-sheet-name="Projects" aria-labelledby="v4-proj-h">
+    <!-- v46 · services (moved here so real projects sit right under the hero) -->
+    <section class="sheet v4-sec" id="v4-services" data-sheet="SVC" data-sheet-name="Services" aria-labelledby="v4-svc-h">
       <div class="wrap">
         <header class="sheet-head v4-head">
-          <p class="kicker"><span class="sp"></span>Projects · portfolio projects, not paid client work</p>
-          <h2 id="v4-proj-h">Practical Solutions I've Built</h2>
-          <p class="intro">Each project shows the business problem, what I built and how it helps.</p>
+          <p class="kicker"><span class="sp"></span>Services · custom-quoted</p>
+          <h2 id="v4-svc-h">What I Can Connect and Automate for Your Business</h2>
         </header>
-        <div class="v4-proj">
-          <article class="v4-card">
-            <div class="v4-prev v4-prev-flow" aria-hidden="true"><svg viewBox="0 0 320 120"><path class="ln" d="M40 60H280"/><g class="nd"><circle cx="40" cy="60" r="15"/><circle cx="100" cy="60" r="15"/><circle cx="160" cy="60" r="15"/><circle cx="220" cy="60" r="15"/><circle cx="280" cy="60" r="15"/></g><g class="tx"><text x="40" y="95">Form</text><text x="100" y="95">n8n</text><text x="160" y="95">Calendar</text><text x="220" y="95">Sheets</text><text x="280" y="95">Gmail</text></g><circle class="pk" cx="40" cy="60" r="5"/></svg></div>
-            <p class="v4-tag">Integration · live on this site</p>
-            <h3>Appointment Booking Automation</h3>
-            <dl class="v4-pab">
-              <div><dt>Problem</dt><dd>Booking a call meant emails back and forth.</dd></div>
-              <div><dt>My solution</dt><dd>A website form connected through n8n to Google Calendar, Google Sheets and Gmail.</dd></div>
-              <div><dt>Benefit</dt><dd>Visitors book on their own. The event, the record and the emails happen automatically.</dd></div>
-            </dl>
-            <div class="v4-act"><button class="btn btn-primary btn-sm" type="button" data-v4-station="1">View details</button><a class="tbtn" href="#sheet-06" data-go-sheet="sheet-06">Try the live demo →</a></div>
-          </article>
-          <article class="v4-card">
-            <div class="v4-prev v4-prev-cal" aria-hidden="true"><svg viewBox="0 0 320 120"><g class="cal"><rect x="60" y="14" width="200" height="94" rx="6"/><path d="M60 34h200"/></g><g class="days"><rect x="70" y="42" width="30" height="24" rx="3"/><rect x="108" y="42" width="30" height="24" rx="3" class="busy"/><rect x="146" y="42" width="30" height="24" rx="3"/><rect x="184" y="42" width="30" height="24" rx="3" class="busy"/><rect x="222" y="42" width="30" height="24" rx="3" class="off"/><rect x="70" y="74" width="30" height="24" rx="3"/><rect x="108" y="74" width="30" height="24" rx="3"/><rect x="146" y="74" width="30" height="24" rx="3" class="off"/><rect x="184" y="74" width="30" height="24" rx="3"/><rect x="222" y="74" width="30" height="24" rx="3" class="ok"/></g></svg></div>
-            <p class="v4-tag">Integration · live on this site</p>
-            <h3>Availability Checker</h3>
-            <dl class="v4-pab">
-              <div><dt>Problem</dt><dd>A visitor could pick a time that is already taken.</dd></div>
-              <div><dt>My solution</dt><dd>Before times are shown, n8n reads the calendar and blocks busy times, weekends and holidays.</dd></div>
-              <div><dt>Benefit</dt><dd>No double bookings and no invalid dates.</dd></div>
-            </dl>
-            <div class="v4-act"><button class="btn btn-primary btn-sm" type="button" data-v4-station="0">View details</button></div>
-          </article>
-          <article class="v4-card">
-            <div class="v4-prev v4-prev-chat" aria-hidden="true"><svg viewBox="0 0 320 120"><rect class="b1" x="40" y="16" width="170" height="30" rx="12"/><rect class="b2" x="130" y="54" width="150" height="26" rx="12"/><rect class="b1" x="40" y="88" width="120" height="22" rx="10"/><g class="dots"><circle cx="60" cy="99" r="3"/><circle cx="72" cy="99" r="3"/><circle cx="84" cy="99" r="3"/></g></svg></div>
-            <p class="v4-tag">FAQ chatbot · live on this site</p>
-            <h3>LUMI, FAQ Chatbot</h3>
-            <dl class="v4-pab">
-              <div><dt>Problem</dt><dd>Visitors ask the same questions again and again.</dd></div>
-              <div><dt>My solution</dt><dd>LUMI answers common questions with prepared answers, right in the browser.</dd></div>
-              <div><dt>Benefit</dt><dd>Quick answers at any hour, and nothing typed is saved or sent.</dd></div>
-            </dl>
-            <div class="v4-act"><button class="btn btn-primary btn-sm" type="button" data-v4-lumi>Chat with LUMI</button></div>
-          </article>
-          <article class="v4-card">
-            <div class="v4-prev v4-prev-fiber" aria-hidden="true"><svg viewBox="0 0 320 120"><path class="rd" d="M0 92C80 80 160 100 320 84"/><path class="rt" d="M30 70C80 30 120 40 160 58S240 70 290 34"/><g class="pl"><circle cx="30" cy="70" r="5"/><circle cx="95" cy="40" r="5"/><circle cx="160" cy="58" r="5"/><circle cx="225" cy="62" r="5"/><circle cx="290" cy="34" r="5"/></g></svg></div>
-            <p class="v4-tag">Fiber engineering · 9+ years</p>
-            <h3>Fiber Engineering Portfolio</h3>
-            <dl class="v4-pab">
-              <div><dt>Problem</dt><dd>Fiber teams need accurate designs that follow their drafting standard.</dd></div>
-              <div><dt>My solution</dt><dd>OSP/FTTH design, quality control and documentation, shown in 8 real samples with client details blurred.</dd></div>
-              <div><dt>Benefit</dt><dd>Clear, checked deliverables your team can build from.</dd></div>
-            </dl>
-            <div class="v4-act"><button class="btn btn-primary btn-sm" type="button" data-go="2" data-atab="samples">See the samples</button></div>
-          </article>
-        </div>
+        <div class="v4-svc">
+                <article><span class="label">Service 01</span><h3>Business Software Integration</h3><p><b>Problem:</b> your apps don't share information.</p><p><b>Solution:</b> I connect compatible tools like CRMs, email, spreadsheets and calendars.</p><p><b>Benefit:</b> data moves on its own, with less copy and paste.</p><p class="v4-q">Custom quote <a href="#sheet-06" data-go-sheet="sheet-06">Discuss this →</a></p></article>
+                <article><span class="label">Service 02</span><h3>Workflow Automation</h3><p><b>Problem:</b> the same admin steps, every day.</p><p><b>Solution:</b> automated workflows in n8n that run the routine steps for you.</p><p><b>Benefit:</b> less repetitive work and fewer missed steps.</p><p class="v4-q">Custom quote <a href="#sheet-06" data-go-sheet="sheet-06">Discuss this →</a></p></article>
+                <article><span class="label">Service 03</span><h3>Webhook &amp; Data Integration</h3><p><b>Problem:</b> updates arrive late, or not at all.</p><p><b>Solution:</b> webhooks and mapped data fields that pass information between apps.</p><p><b>Benefit:</b> faster updates and fewer typing errors.</p><p class="v4-q">Custom quote <a href="#sheet-06" data-go-sheet="sheet-06">Discuss this →</a></p></article>
+                <article><span class="label">Service 04</span><h3>Automation Troubleshooting</h3><p><b>Problem:</b> a workflow breaks or acts strangely.</p><p><b>Solution:</b> I test it step by step, find the cause and fix it.</p><p><b>Benefit:</b> automations you can rely on.</p><p class="v4-q">Custom quote <a href="#sheet-06" data-go-sheet="sheet-06">Discuss this →</a></p></article>
+                <article><span class="label">Service 05</span><h3>Workflow Documentation</h3><p><b>Problem:</b> nobody knows how the automation works.</p><p><b>Solution:</b> simple workflow maps and plain instructions.</p><p><b>Benefit:</b> your team can maintain and update it.</p><p class="v4-q">Custom quote <a href="#sheet-06" data-go-sheet="sheet-06">Discuss this →</a></p></article>
+              </div>
+
+        <article class="v4-svc-fiber"><span class="label">Service 06</span><h3>Fiber Network Design &amp; Engineering</h3><p><b>Problem:</b> fiber projects need accurate, standard-compliant drawings on deadline.</p><p><b>Solution:</b> OSP/FTTH design, quality control and technical documentation, remotely.</p><p><b>Benefit:</b> clear, checked deliverables your team can build from.</p><div class="focus v4-focus">
+                <div class="focus-card"><span class="label">Deliverable 01</span><h3>OSP / FTTH design</h3><p>Aerial and underground layouts in CAD and GIS, to your drafting standard.</p><span class="status est">Established</span></div>
+                <div class="focus-card"><span class="label">Deliverable 02</span><h3>Design QC</h3><p>Second review of layouts and drawing sets, ride-out QC, clear redlines.</p><span class="status est">Established</span></div>
+                <div class="focus-card"><span class="label">Deliverable 03</span><h3>Technical documentation</h3><p>Construction and permit sets, as-builts, quantities and organized records.</p><span class="status est">Established</span></div>
+              </div>
+<p class="v4-q">Custom quote <a href="#sheet-06" data-go-sheet="sheet-06">Discuss this →</a></p></article>
+        <div class="v4-svc-side">
+              <div class="v4-side-g"><p class="label">Built for</p>
+              <div class="tools"><span class="tool">SaaS companies</span><span class="tool">Growing SMBs</span><span class="tool">Agencies</span><span class="tool">Service businesses</span><span class="tool">Teams with disconnected tools</span></div></div>
+              <div class="v4-side-g"><p class="label">Tools I use</p>
+              <div class="tools"><span class="tool">n8n</span><span class="tool">Webhooks</span><span class="tool">Google Calendar</span><span class="tool">Google Sheets</span><span class="tool">Gmail</span></div></div>
+              <p class="note-dev v4-side-n">Shown in portfolio projects live on this site, not paid client work. Make and Zapier are next on my learning list. Coming later: website maintenance and AI agent development.</p>
+            </div>
+        <div class="ctas"><a class="btn btn-primary mag" href="#sheet-06" data-go-sheet="sheet-06">Discuss Your Project <span class="arr" aria-hidden="true">→</span></a></div>
       </div>
     </section>
 
@@ -5226,11 +5270,14 @@ buildRail();scrollUI();
   if(!s3||!s4||!tabAi||!tabEng)return;
   var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   var mode=null;
+  var aiOnly=['v4-featured','v4-why'].map(function(id){return document.getElementById(id);}).filter(Boolean); // v47: integration-only sections
   function fold(el,hide){el.classList.toggle('v3-collapsed',hide);if(hide)el.setAttribute('aria-hidden','true');else el.removeAttribute('aria-hidden');try{el.inert=hide;}catch(e){}
     if(!hide&&!reduce){el.classList.remove('v3-in');void el.offsetWidth;el.classList.add('v3-in');}}
   function set(m){
     if(m!=='ai'&&m!=='eng'||m===mode)return;mode=m;var ai=m==='ai';
     fold(s3,ai);fold(s4,!ai);
+    aiOnly.forEach(function(el){fold(el,!ai);});document.documentElement.setAttribute('data-v4-mode',m); // v47
+    var sh=document.getElementById('v4-svc-h');if(sh)sh.textContent=ai?'What I Can Connect and Automate for Your Business':'Fiber Design Services';
     var t=ai?tabAi:tabEng;if(t.getAttribute('aria-selected')!=='true')t.click(); // keep the Sheet 02 tabs in step
     try{localStorage.setItem('v3-specialty',m);}catch(e){}
     try{window.dispatchEvent(new Event('resize'));window.dispatchEvent(new Event('scroll'));}catch(e){}
@@ -5512,6 +5559,8 @@ buildRail();scrollUI();
   if(flow){var items=[].slice.call(flow.children);
     var light=function(){items.forEach(function(li,i){setTimeout(function(){li.classList.add('on');},reduce?0:i*260);});};
     if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){if(es.some(function(e){return e.isIntersecting;})){io.disconnect();light();}},{threshold:.35});io.observe(flow);}else light();}
+  /* v46: project thumbnails load from the page's own stored images (no outside requests) */
+  [].forEach.call(document.querySelectorAll('img[data-v4-asset]'),function(im){var p=im.getAttribute('data-v4-asset');im.src=(typeof ASSET==='function')?ASSET(p):p;});
   /* v45: the pointing hand rests once the visitor has opened the real workflow */
   var rw=document.querySelector('.v4-real-wrap');
   if(rw){try{if(sessionStorage.getItem('v4-real-seen'))rw.classList.add('seen');}catch(x){}
