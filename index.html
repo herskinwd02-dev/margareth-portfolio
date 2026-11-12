@@ -3432,7 +3432,7 @@ function dayStatus(D, slotZone, now) {
 }
 
 /* ---------- RESULT LINKS ----------
-   Appointments are booked by bookSlot(payload) → n8n book-appointment (calendar check, event, emails).
+   Appointments are booked by bookSlot(payload) → n8n /appointment with action 'book' (calendar check, event, emails).
    The page prepares no email and no .ics for appointments; a booking is shown as confirmed only when
    n8n answers confirmed. onBook() now only builds the optional summary text for the message-only mode. */
 function onBook(payload) {
@@ -3449,17 +3449,18 @@ function onBook(payload) {
    N8N_USE_TEST = true  → test URLs (/webhook-test/…): answer only while "Listen for test event" is running
                           in the n8n editor. Use for a one-off check, then set back to false.
    check-availability: GET ?date=YYYY-MM-DD (Philippine date) → { date, allDayBlocked, busyPeriods:[{start,end}] }
-   book-appointment:   POST JSON booking → { confirmed:true } | { ok:true, available:false }                    */
+   appointment:        POST JSON booking with action:'book' → { confirmed:true } | { ok:true, available:false }
+                       (the same Task 2 address also handles action:'reschedule' and 'cancel' from manage-appointment.html) */
 const N8N_USE_TEST = false;
 const N8N_BASE = 'https://n8n-production-dc43.up.railway.app/' + (N8N_USE_TEST ? 'webhook-test' : 'webhook');
 const N8N = {
   checkUrl: N8N_BASE + '/check-availability',   // calendar availability (read-only)
-  bookUrl: N8N_BASE + '/book-appointment',      // automatic booking (calendar check → event → emails)
+  bookUrl: N8N_BASE + '/appointment',           // Task 2 single trigger; the booking sends action: 'book'
   timeoutMs: 30000 // the booking workflow creates the event and sends two emails before it replies
 };
 const AUTO_CONFIRM_READY = !!N8N.bookUrl;
 /* PRECHECK = true → each selected date is checked against Google Calendar through n8n before a slot can be booked.
-   false → every slot in the window is selectable and only book-appointment decides. */
+   false → every slot in the window is selectable and only the Task 2 booking check decides. */
 const PRECHECK = true;
 
 async function fetchDayAvailability(dateKey) {
@@ -3500,7 +3501,7 @@ async function bookSlot(payload) {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), N8N.timeoutMs);
   try {
-    const r = await fetch(N8N.bookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...payload, mode: 'auto', zone: AVAIL.zone }), signal: ctl.signal });
+    const r = await fetch(N8N.bookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...payload, action: 'book', mode: 'auto', zone: AVAIL.zone }), signal: ctl.signal });
     if (!r.ok) return { state: 'error', reason: `Booking responded ${r.status}` };
     let j = null;
     try { j = await r.json(); } catch (e) { return { state: 'error', reason: 'Booking returned no JSON' }; }
