@@ -167,16 +167,12 @@
   <script>
     "use strict";
 
-    // n8n webhook endpoints.
-    // These become available when the respective
-    // n8n workflows are published.
+    // n8n webhook endpoint (Task 2 single trigger).
+    // Reschedule and cancel use the same address;
+    // the "action" field tells n8n which one it is.
 
-    const N8N = {
-      cancel:
-        "https://n8n-production-dc43.up.railway.app/webhook/cancel-appointment",
-      reschedule:
-        "https://n8n-production-dc43.up.railway.app/webhook/reschedule-appointment"
-    };
+    const N8N_APPOINTMENT_URL =
+      "https://n8n-production-dc43.up.railway.app/webhook/appointment";
 
     const form = document.getElementById("manageForm");
     const action = document.getElementById("action");
@@ -245,6 +241,7 @@
       const isRescheduling = action.value === "reschedule";
 
       const data = {
+        action: isRescheduling ? "reschedule" : "cancel",
         bookingId: bookingId.value.trim(),
         cancellationToken: token.value.trim()
       };
@@ -320,9 +317,7 @@
       button.textContent = "Processing...";
 
       try {
-        const endpoint = isRescheduling
-          ? N8N.reschedule
-          : N8N.cancel;
+        const endpoint = N8N_APPOINTMENT_URL;
 
         // URL-encoded POST uses the same body field names
         // expected by the existing n8n workflows.

@@ -3634,7 +3634,7 @@ function dayStatus(D, slotZone, now) {
 }
 
 /* ---------- RESULT LINKS ----------
-   Appointments are booked by bookSlot(payload) → n8n book-appointment (calendar check, event, emails).
+   Appointments are booked by bookSlot(payload) → n8n /appointment with action 'book' (calendar check, event, emails).
    The page prepares no email and no .ics for appointments; a booking is shown as confirmed only when
    n8n answers confirmed. onBook() now only builds the optional summary text for the message-only mode. */
 function onBook(payload) {
@@ -3651,17 +3651,18 @@ function onBook(payload) {
    N8N_USE_TEST = true  → test URLs (/webhook-test/…): answer only while "Listen for test event" is running
                           in the n8n editor. Use for a one-off check, then set back to false.
    check-availability: GET ?date=YYYY-MM-DD (Philippine date) → { date, allDayBlocked, busyPeriods:[{start,end}] }
-   book-appointment:   POST JSON booking → { confirmed:true } | { ok:true, available:false }                    */
+   appointment:        POST JSON booking with action:'book' → { confirmed:true } | { ok:true, available:false }
+                       (the same Task 2 address also handles action:'reschedule' and 'cancel' from manage-appointment.html) */
 const N8N_USE_TEST = false;
 const N8N_BASE = 'https://n8n-production-dc43.up.railway.app/' + (N8N_USE_TEST ? 'webhook-test' : 'webhook');
 const N8N = {
   checkUrl: N8N_BASE + '/check-availability',   // calendar availability (read-only)
-  bookUrl: N8N_BASE + '/book-appointment',      // automatic booking (calendar check → event → emails)
+  bookUrl: N8N_BASE + '/appointment',           // Task 2 single trigger; the booking sends action: 'book'
   timeoutMs: 30000 // the booking workflow creates the event and sends two emails before it replies
 };
 const AUTO_CONFIRM_READY = !!N8N.bookUrl;
 /* PRECHECK = true → each selected date is checked against Google Calendar through n8n before a slot can be booked.
-   false → every slot in the window is selectable and only book-appointment decides. */
+   false → every slot in the window is selectable and only the Task 2 booking check decides. */
 const PRECHECK = true;
 
 async function fetchDayAvailability(dateKey) {
@@ -3702,7 +3703,7 @@ async function bookSlot(payload) {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), N8N.timeoutMs);
   try {
-    const r = await fetch(N8N.bookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...payload, mode: 'auto', zone: AVAIL.zone }), signal: ctl.signal });
+    const r = await fetch(N8N.bookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...payload, action: 'book', mode: 'auto', zone: AVAIL.zone }), signal: ctl.signal });
     if (!r.ok) return { state: 'error', reason: `Booking responded ${r.status}` };
     let j = null;
     try { j = await r.json(); } catch (e) { return { state: 'error', reason: 'Booking returned no JSON' }; }
@@ -6050,7 +6051,7 @@ buildRail();scrollUI();
       sheet:'<rect class="bx" x="20" y="12" width="120" height="66" rx="3"/><g class="ln"><path d="M20 25h120M20 38h120M20 51h120M20 64h120M56 12v66M98 12v66"/></g><rect x="22" y="27" width="32" height="9" fill="#f4c7c3" class="a1"/><rect x="22" y="40" width="32" height="9" fill="#f4c7c3" class="a2"/><rect x="22" y="53" width="32" height="9" fill="#f4c7c3" class="a3"/><text x="24" y="21">lead</text><text x="60" y="21">email</text><text x="102" y="21">status</text><text x="102" y="34" class="a1">✓ clean</text><text x="102" y="47" class="a2">✓ clean</text><text x="102" y="60" class="a3">✓ clean</text><rect class="lm scan" x="20" y="12" width="3" height="66" opacity=".8"/>',
       trigger:'<rect class="bx" x="10" y="32" width="38" height="26" rx="4"/><text x="15" y="47">inquiry</text><path class="fl" d="M48 45h34M82 45l30-20M82 45l30 20"/><rect class="bx a2" x="112" y="14" width="38" height="20" rx="4"/><text x="117" y="27" class="a2">record</text><rect class="bx a3" x="112" y="56" width="38" height="20" rx="4"/><text x="119" y="69" class="a3">alert</text><circle class="tl pulse" cx="82" cy="45" r="3"/>',
       board:'<rect class="bx" x="10" y="10" width="42" height="70" rx="4"/><rect class="bx" x="59" y="10" width="42" height="70" rx="4"/><rect class="bx" x="108" y="10" width="42" height="70" rx="4"/><text x="14" y="19">To do</text><text x="63" y="19">Doing</text><text x="112" y="19">Done</text><rect x="14" y="40" width="34" height="12" rx="2" class="ink" opacity=".15"/><rect x="14" y="56" width="34" height="12" rx="2" class="ink" opacity=".15"/><g class="mv"><rect x="14" y="24" width="34" height="12" rx="2" class="tl"/></g>',
-      api:'<rect class="bx" x="10" y="14" width="140" height="18" rx="3"/><rect x="13" y="17" width="20" height="12" rx="2" class="tl"/><text x="15.5" y="25" fill="#fff" style="fill:#fff">POST</text><text x="38" y="25">/webhook/check-availability</text><rect class="bx a2" x="10" y="42" width="140" height="36" rx="3"/><circle class="a2" cx="20" cy="52" r="3" fill="#2e9e5b"/><text x="27" y="54" class="a2">200 OK · 210 ms</text><rect class="ink a3" x="18" y="62" width="90" height="2.4" rx="1" opacity=".4"/><rect class="ink a4" x="18" y="68" width="64" height="2.4" rx="1" opacity=".4"/>',
+      api:'<rect class="bx" x="10" y="14" width="140" height="18" rx="3"/><rect x="13" y="17" width="20" height="12" rx="2" class="tl"/><text x="15.5" y="25" fill="#fff" style="fill:#fff">GET</text><text x="38" y="25">/webhook/check-availability</text><rect class="bx a2" x="10" y="42" width="140" height="36" rx="3"/><circle class="a2" cx="20" cy="52" r="3" fill="#2e9e5b"/><text x="27" y="54" class="a2">200 OK · 210 ms</text><rect class="ink a3" x="18" y="62" width="90" height="2.4" rx="1" opacity=".4"/><rect class="ink a4" x="18" y="68" width="64" height="2.4" rx="1" opacity=".4"/>',
       status:'<rect class="bx" x="20" y="16" width="120" height="58" rx="6"/><text x="30" y="32">n8n · self-hosted</text><circle class="pulse" cx="34" cy="46" r="3.2" fill="#2e9e5b"/><text x="42" y="48">Online</text><path class="ln" d="M30 64l12-4 10 3 12-8 10 5 12-9 10 6 12-4"/><path class="fl" d="M30 64l12-4 10 3 12-8 10 5 12-9 10 6 12-4"/>',
       table:'<rect class="bx" x="18" y="12" width="124" height="66" rx="3"/><rect x="18" y="12" width="124" height="12" class="ink" opacity=".12"/><text x="24" y="20">id</text><text x="48" y="20">workflow</text><text x="104" y="20">status</text><g class="a1"><text x="24" y="33">1</text><text x="48" y="33">booking</text><text x="104" y="33">success</text></g><g class="a2"><text x="24" y="45">2</text><text x="48" y="45">availability</text><text x="104" y="45">success</text></g><g class="a3"><text x="24" y="57">3</text><text x="48" y="57">reminder</text><text x="104" y="57">success</text></g><g class="a4"><text x="24" y="69">4</text><text x="48" y="69">onboarding</text><text x="104" y="69">success</text></g>'
     };
