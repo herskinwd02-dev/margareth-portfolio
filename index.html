@@ -2929,6 +2929,52 @@ html[data-theme=night]{--v79-glow:0 0 0 1px rgba(63,183,156,.7),0 0 0 5px rgba(6
 }
 :is(#sheet-02 .v7-cb,#sheet-02 .v4-smp,#sheet-03 .dcard):focus-visible{box-shadow:var(--v79-glow)!important}
 </style>
+<style id="v80-fixes">
+/* v80 · 1) AI & Automation workspace: this section is wider than the others, so on laptops (1280px+) its left edge
+   ran under the page's route line. Give it a side gutter that always clears the line. Layout only. */
+@media (min-width:1280px){
+  #sheet-04>.wrap{padding-left:max(20px,calc(clamp(22px,(100vw - 1180px)/4,90px) + 36px - max(0px,(100vw - 1360px)/2)));
+                  padding-right:max(20px,calc(clamp(22px,(100vw - 1180px)/4,90px) + 36px - max(0px,(100vw - 1360px)/2)))}
+}
+/* 2) Engineering Atlas in Night mode: the map now uses the same night colours as the rest of the page (CRM palette).
+   Colours only — the map, its routes and its buttons work exactly as before. */
+html[data-theme=night] #stage{--paper:#0A141D;--paper-2:#0E1B27;--paper-3:#14263A;--white:#101F2D;--ink:#EEF2EE;--ink-2:#C9D6DC;--muted:#94A6B4;--line:#1B2C3A;--line-2:#2B4152;--grid:#132230;--steel:#476073;--teal:#3FB79C;--teal-ink:#7FD1C0;--teal-wash:#10302B;--lime-ink:#DAE997;--lime-wash:#232F1F;--hole:var(--paper);
+  --tree:#2F5A50;--tree-2:#1E3B36;--water:#11303A;--signal:#E9895C;--signal-ink:#F4B08E;--signal-wash:#3A2219;color:var(--ink);background:var(--paper)}
+html[data-theme=night] #stage .g-minor{stroke:color-mix(in srgb,#182A38 calc(var(--m) * 100%),var(--grid))}
+html[data-theme=night] #stage .g-major{stroke:color-mix(in srgb,#22384A calc(var(--m) * 100%),#1A2D3C)}
+html[data-theme=night] #stage .river-line{stroke:#3FB79C;opacity:calc(.55 - var(--m) * .5)}
+html[data-theme=night] #stage .river-name{fill:#8FE0CB}
+html[data-theme=night] #stage .contour.idx{stroke:#3FB79C}
+html[data-theme=night] #stage .seg-ctl button[aria-pressed="true"]{background:#2C8E7A;color:#fff}
+/* enhance: the fiber route and destinations glow softly at night, like the CRM */
+html[data-theme=night] #stage :is(.seg.prop,.flow,.halo){filter:drop-shadow(0 0 3px rgba(63,183,156,.55))}
+html[data-theme=night] #stage .node .n-body{filter:drop-shadow(0 0 5px rgba(63,183,156,.45))}
+html[data-theme=night] #stage .node.sel .n-body,html[data-theme=night] #stage .node:hover .n-body{filter:drop-shadow(0 0 9px rgba(196,217,78,.55))}
+html[data-theme=night] #stage .logo-g .lg-ring{filter:drop-shadow(0 0 4px rgba(63,183,156,.4))}
+html[data-theme=night] #stage :is(.mbtn,.mnav,.seg-ctl,.legend summary){box-shadow:0 0 0 1px rgba(63,183,156,.12),0 8px 20px -12px rgba(0,0,0,.7)}
+html[data-theme=night] #stage .mlabel b{color:#C4D94E}
+</style>
+<style id="v81-speed">
+/* v81 · smoother scrolling. Visual result is the same; the browser just has much less to redraw while you scroll.
+   a) Hero + Selected work: on big screens they painted their own copy of the contour background with
+      background-attachment:fixed, which makes the browser repaint them on every scroll step. In Integration mode the
+      map is hidden, so they can simply show the page's own fixed contour layer (identical picture, no repaint).
+      In Fiber mode they still need to cover the map, so they keep a solid background that scrolls normally. */
+@media (min-width:960px){
+  html[data-v4-mode=ai] #sheet-01,html[data-v4-mode=ai] #sheet-02{background:transparent!important}
+  html[data-v4-mode=eng] #sheet-01,html[data-v4-mode=eng] #sheet-02{background-attachment:scroll!important}
+}
+/* b) frosted-glass blur behind cards had to be recalculated for every card on every scroll step.
+      Slightly more solid cards give the same look without the blur. (The top menu keeps its blur.) */
+:is(#sheet-02 .v7-cb,#sheet-02 .v4-smp,#v4-services .v4-svc>article,#v4-services .v4-svc-fiber,.mc-example,#v7Dlg){
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:color-mix(in srgb,var(--white,#fff) 90%,transparent)!important}
+html[data-theme=night] :is(#sheet-02 .v7-cb,#sheet-02 .v4-smp,#v4-services .v4-svc>article,#v4-services .v4-svc-fiber,.mc-example,#v7Dlg){background:rgba(16,31,45,.86)!important}
+.v78-uni{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+/* c) phones: the calendar's hidden day tips (invisible until you touch a day) stuck out past the right edge, which made
+      phones treat the page as 494px wide (sideways wobble, zoomed-out page, jumpy scrolling). Clip them at the edge of
+      the Contact section. The calendar itself is not changed. */
+#sheet-06{overflow-x:clip}
+</style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -3426,7 +3472,7 @@ html[data-theme=night]{--v79-glow:0 0 0 1px rgba(63,183,156,.7),0 0 0 5px rgba(6
                 <p>I trace routes against base imagery, check pole and splice details, and review the final drawing set against the client’s drafting standard.</p>
               </div>
             </div>
-            <div class="about-cta"><a class="btn btn-primary mag" href="https://canva.link/iwatahjxg40szb8" target="_blank" rel="noopener">View My Resume ↗</a><a class="btn btn-line mag" href="#sheet-06" data-go-sheet="sheet-06">Book a Free Discovery Call</a></div>
+            <div class="about-cta"><a class="btn btn-primary mag" href="https://canva.link/j1zr119cmb4h6tz" target="_blank" rel="noopener">View My Resume ↗</a><a class="btn btn-line mag" href="#sheet-06" data-go-sheet="sheet-06">Book a Free Discovery Call</a></div>
           </div>
           <div class="aside">
             <figure class="plate-photo rv">
@@ -3450,7 +3496,7 @@ html[data-theme=night]{--v79-glow:0 0 0 1px rgba(63,183,156,.7),0 0 0 5px rgba(6
             <dl class="crow-list">
               <div class="crow"><dt>Email</dt><dd><a class="cval" id="emailTxt" href="mailto:margarethcondes.mc@gmail.com">margarethcondes.mc@<wbr>gmail.com</a></dd><button class="tbtn" type="button" id="copyEmail">Copy</button></div>
               <div class="crow"><dt>LinkedIn</dt><dd><a class="cval" href="https://www.linkedin.com/in/margareth-c/" target="_blank" rel="noopener">linkedin.com/in/margareth-c</a></dd><a class="tbtn" href="https://www.linkedin.com/in/margareth-c/" target="_blank" rel="noopener">Open ↗</a></div>
-              <div class="crow"><dt>Résumé</dt><dd><a class="cval" href="https://canva.link/iwatahjxg40szb8" target="_blank" rel="noopener">View my résumé</a></dd><a class="tbtn" href="https://canva.link/iwatahjxg40szb8" target="_blank" rel="noopener">Open ↗</a></div>
+              <div class="crow"><dt>Résumé</dt><dd><a class="cval" href="https://canva.link/j1zr119cmb4h6tz" target="_blank" rel="noopener">View my résumé</a></dd><a class="tbtn" href="https://canva.link/j1zr119cmb4h6tz" target="_blank" rel="noopener">Open ↗</a></div>
               <div class="crow"><dt>Base</dt><dd><span class="cplain"><span class="avail-dot" aria-hidden="true"></span>Cavite, Philippines · Philippine Time (PHT, UTC+8) · calls Mon–Fri, any hour PHT</span></dd><span></span></div>
             </dl>
             <p class="msg" id="emailMsg" role="status"></p>
@@ -4776,7 +4822,7 @@ blocks(802,604,-6,5,3,34,22,10,1);blocks(640,86,2,5,2,34,24,11,2);blocks(40,612,
 const ROADS=[
   {name:'MERIDIAN ROAD',at:250,pts:[[-900,200],[-560,226],[-200,232],[150,172],[380,212],[560,238],[700,200],[900,170],[1200,212],[1500,180],[2000,160]]},
   {name:'KILN STREET',at:300,axis:'y',pts:[[560,-700],[580,-100],[545,120],[600,240],[690,400],[758,500],[772,640],[760,800],[740,1500]]},
-  {name:'LEDGER AVENUE',at:620,pts:[[-900,780],[-400,740],[-100,732],[250,770],[480,736],[760,702],[1000,730],[1400,700],[2000,690]]},
+  {name:'LEDGER AVENUE',at:740,pts:[[-900,780],[-400,740],[-100,732],[250,770],[480,736],[760,702],[1000,730],[1400,700],[2000,690]]},
 ];
 const roadD=ROADS.map(r=>bez(r.pts,false));
 const roadRef=ROADS.map((r,i)=>el('path',{d:roadD[i],id:'road'+i},dAnn));
@@ -5242,7 +5288,7 @@ function buildRail(){
   const prog=el('path',{d,class:'r-prog'},rail);const len=prog.getTotalLength();
   prog.style.strokeDasharray=`${len} ${len}`;prog.style.strokeDashoffset=len;
   for(let l=40;l<len-20;l+=56){const p=prog.getPointAtLength(l);el('circle',{cx:f(p.x),cy:f(p.y),r:2.6,class:'r-pole'},rail);}
-  const samples=[];for(let l=0;l<=len;l+=6){samples.push([prog.getPointAtLength(l).y,l]);}
+  const samples=[];for(let l=0;l<=len;l+=24){samples.push([prog.getPointAtLength(l).y,l]);}samples.push([prog.getPointAtLength(len).y,len]);
   const nEls=nodes.map(n=>{const g=el('g',{transform:`translate(${f(x)} ${f(n.y)})`},rail);const r=el('circle',{r:7,class:'r-node'},g);const t=el('text',{x:0,y:-15,class:'r-lbl','text-anchor':'middle'},g);t.textContent=n.s.dataset.sheet;return{y:n.y,r,s:n.s};});
   const endG=el('g',{transform:`translate(${f(x)} ${f(endY)})`},rail);const endC=el('circle',{r:17,class:'r-end'},endG);const lg=el('svg',{x:-12,y:-9.5,width:24,height:19,viewBox:'-11 -11 366 280',class:'r-logo'},endG);el('use',{href:'#mcLogo'},lg);const et=el('text',{x:0,y:32,class:'r-lbl','text-anchor':'middle'},endG);et.textContent='END';
   railD={prog,len,samples,nEls,endC,endY};updateRail();
@@ -5783,7 +5829,12 @@ $$('[data-go-sheet]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault
   if(id==='sheet-03'){goToStep(2,false);return;}
   if(id==='sheet-01'){scrollTo({top:0,behavior:reduce?'auto':'smooth'});return;}
   if(id==='sheet-06'&&window.mountBooking)window.mountBooking();
-  const t=document.getElementById(id);if(t)t.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});}));
+  const t=document.getElementById(id);if(t)mcGlide(t);}));
+/* v81: a long trip (e.g. hero → booking) skips most of the way at once and glides only the last screen and a half, so it arrives quickly and smoothly */
+function mcGlide(t){if(reduce){t.scrollIntoView({behavior:'auto',block:'start'});return;}const top=t.getBoundingClientRect().top,keep=innerHeight*1.5;if(Math.abs(top)>keep+innerHeight){scrollTo({top:scrollY+top-Math.sign(top)*keep,behavior:'instant'});}requestAnimationFrame(()=>{t.scrollIntoView({behavior:'smooth',block:'start'});mcSettle(t);});}
+/* v81: sections below can change height while the page glides (pictures and reveals finishing). When the glide stops,
+   nudge once so the section really starts under the menu. Stops if the visitor scrolls by themselves. */
+function mcSettle(t){let last=-1,same=0,n=0,user=false;const off=()=>{user=true;};['wheel','touchstart','keydown'].forEach(e=>addEventListener(e,off,{once:true,passive:true}));const chk=()=>{if(user)return;n++;const y=scrollY;same=Math.abs(y-last)<1?same+1:0;last=y;if(same<2&&n<60){setTimeout(chk,90);return;}['wheel','touchstart','keydown'].forEach(e=>removeEventListener(e,off));const want=(parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)||0)+(parseFloat(getComputedStyle(t).scrollMarginTop)||0);const d=t.getBoundingClientRect().top-want,max=document.documentElement.scrollHeight-innerHeight;if(Math.abs(d)>6&&!(d>0&&scrollY>=max-2))scrollTo({top:scrollY+d,behavior:'smooth'});};setTimeout(chk,250);}
 
 /* ================= POINTER ROUTE TRAIL ================= */
 const trail=(()=>{
@@ -6159,7 +6210,7 @@ if('ResizeObserver' in window){new ResizeObserver(()=>{clearTimeout(rT);rT=setTi
 addEventListener('resize',()=>{clearTimeout(rT);rT=setTimeout(layoutAll,80);});
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{buildRail();scrollUI();});
 addEventListener('load',()=>{buildRail();scrollUI();});
-if('ResizeObserver' in window){let rbt=0,lastH=0;new ResizeObserver(()=>{const h=sheetsEl.offsetHeight;if(Math.abs(h-lastH)<2)return;lastH=h;clearTimeout(rbt);rbt=setTimeout(()=>{buildRail();scrollUI();},140);}).observe(sheetsEl);}
+if('ResizeObserver' in window){let rbt=0,lastH=0,lastS=0;addEventListener('scroll',()=>{lastS=performance.now();},{passive:true});const later=()=>{if(performance.now()-lastS<250){rbt=setTimeout(later,200);return;}buildRail();scrollUI();};/* v81: rebuild the route line only after scrolling stops */new ResizeObserver(()=>{const h=sheetsEl.offsetHeight;if(Math.abs(h-lastH)<2)return;lastH=h;clearTimeout(rbt);rbt=setTimeout(later,140);}).observe(sheetsEl);}
 buildRail();scrollUI();
 })();
 </script>
@@ -7180,7 +7231,7 @@ buildRail();scrollUI();
   var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   var $=function(s,r){return (r||document).querySelector(s);};
   var launch=$('#mcChatLaunch'),panel=$('#mcChatPanel'),log=$('#mcChatLog'),form=$('#mcChatForm'),inp=$('#mcChatIn'),bubble=$('#mcChatBubble'),quick=$('#mcChatQuick');
-  var EMAIL='margarethcondes.mc@gmail.com',RESUME='https://canva.link/iwatahjxg40szb8',LINKEDIN='https://www.linkedin.com/in/margareth-c/';
+  var EMAIL='margarethcondes.mc@gmail.com',RESUME='https://canva.link/j1zr119cmb4h6tz',LINKEDIN='https://www.linkedin.com/in/margareth-c/';
   var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});};
 
   /* ---------- avatar (original SVG, drawn for this site) ---------- */
@@ -7762,6 +7813,8 @@ b.querySelectorAll('.v73-n[data-tip]').forEach(function(n){
   function load(cb){if(window.THREE)return cb();var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';s.async=true;s.onload=function(){window.THREE?cb():fallback()};s.onerror=fallback;document.head.appendChild(s);}
   function start(){if(started)return;started=true;if(!webgl())return fallback();load(build);}
   if('IntersectionObserver' in window)new IntersectionObserver(function(es){inView=es[0].isIntersecting;if(inView){if(document.readyState==='complete')start();else addEventListener('load',start,{once:true});}kick();},{rootMargin:'400px'}).observe(host);else addEventListener('load',start);
+  /* v81: prepare the universe during idle time after the page loads (it only draws while on screen) */
+  addEventListener('load',function(){setTimeout(function(){(window.requestIdleCallback||function(f){setTimeout(f,1)})(function(){start()},{timeout:700})},1700)});
   function build(){
     var T=window.THREE,R;try{R=new T.WebGLRenderer({antialias:true,alpha:true,powerPreference:'low-power'});}catch(e){return fallback();}
     R.setPixelRatio(Math.min(devicePixelRatio||1,2));R.domElement.className='v78-cv';host.insertBefore(R.domElement,host.firstChild);wrap.classList.add('v78-ready');
@@ -7820,7 +7873,11 @@ b.querySelectorAll('.v73-n[data-tip]').forEach(function(n){
       else if(drag){var dx=e.clientX-drag.x,dy=e.clientY-drag.y;moved+=Math.abs(dx)+Math.abs(dy);cam.tth-=dx*.006;if(e.pointerType==='mouse')cam.tph=Math.min(2.4,Math.max(.6,cam.tph-dy*.006));drag={x:e.clientX,y:e.clientY};}
       dirty=true;kick();});
     var end=function(e){delete ptrs[e.pointerId];if(Object.keys(ptrs).length<2)pinch=null;if(!Object.keys(ptrs).length){drag=null;wrap.classList.remove('v78-drag');}};
-    cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);cv.addEventListener('pointerleave',function(){px=py=0});
+    /* v80: the glowing tool balls work like their labels: point to see the name, click to open the tool */
+    var sH=null;function hitAt(cx,cy){var r=host.getBoundingClientRect(),x=cx-r.left,y=cy-r.top,best=null,bd=1e9;APPS.forEach(function(a){if(!a._vis||a._sx==null)return;var d=Math.hypot(a._sx-x,a._sy-y),lim=Math.max(12,20*a._k);if(d<lim&&d<bd){bd=d;best=a}});return best;}
+    cv.addEventListener('pointermove',function(e){if(drag&&moved>4||pinch){if(sH){if(hov===sH)hov=null;sH=null;cv.style.cursor='';}return;}var h=hitAt(e.clientX,e.clientY);if(h!==sH){if(hov===sH)hov=h;else if(h)hov=h;sH=h;cv.style.cursor=h?'pointer':'';kick();}});
+    cv.addEventListener('pointerup',function(e){if(moved>6||pinch)return;var h=hitAt(e.clientX,e.clientY);if(h){pick(h.id);return;}if(focus){var r=host.getBoundingClientRect();tmp.set(0,0,0).applyMatrix4(G.matrixWorld).project(C);if(Math.hypot((tmp.x*.5+.5)*W-(e.clientX-r.left),(-tmp.y*.5+.5)*H-(e.clientY-r.top))<40)reset();}});
+    cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);cv.addEventListener('pointerleave',function(){px=py=0;if(sH){if(hov===sH)hov=null;sH=null;cv.style.cursor='';kick();}});
     host.addEventListener('wheel',function(e){var fs=wrap.classList.contains('v79-fs')||document.fullscreenElement===wrap;if(!(e.ctrlKey||fs))return;e.preventDefault();cam.td=Math.min(70,Math.max(12,cam.td*(1+Math.sign(e.deltaY)*.1)));kick();},{passive:false});
     var tmp=new T.Vector3();
     function place(){
@@ -7829,7 +7886,7 @@ b.querySelectorAll('.v73-n[data-tip]').forEach(function(n){
         var dim=focus&&focus!==a&&focus.cl!==a.cl;
         a.lab.style.transform='translate('+x.toFixed(1)+'px,'+(y-14*k).toFixed(1)+'px) translate(-50%,-100%) scale('+k.toFixed(3)+')';
         a.lab.style.opacity=vis?String(dim?.18:Math.max(.3,Math.min(1,(k-.5)*1.6))):'0';a.lab.style.zIndex=String(Math.round(k*100)+(focus===a?500:0));a.lab.classList.toggle('on',focus===a);
-        a._x=x;a._y=y-14*k;a._k=k;a._vis=vis;});
+        a._x=x;a._y=y-14*k;a._k=k;a._vis=vis;a._sx=x;a._sy=y;});
       var placed=[];APPS.slice().sort(function(p,q){return (q===focus)-(p===focus)||q._k-p._k}).forEach(function(a){if(!a._vis){a.lab.tabIndex=-1;return;}var w=a.lab.offsetWidth*a._k,h=a.lab.offsetHeight*a._k,bx={l:a._x-w/2,r:a._x+w/2,t:a._y-h,b:a._y};
         var hit=placed.some(function(q){return bx.l<q.r-2&&bx.r>q.l+2&&bx.t<q.b-2&&bx.b>q.t+2});if(hit&&hov!==a&&focus!==a){a.lab.style.opacity='0';a.lab.style.pointerEvents='none';}else{a.lab.style.pointerEvents='';placed.push(bx);}a.lab.tabIndex=0;});
       tmp.set(0,0,0).applyMatrix4(G.matrixWorld).project(C);cen.style.transform='translate('+((tmp.x*.5+.5)*W).toFixed(1)+'px,'+((-tmp.y*.5+.5)*H).toFixed(1)+'px) translate(-50%,-50%)';cen.style.opacity=focus?'.35':'1';}
@@ -7856,5 +7913,12 @@ b.querySelectorAll('.v73-n[data-tip]').forEach(function(n){
   }
 })();</script>
 
+<script>/* v81 · speed: get the booking calendar ready while the visitor reads the top of the page, so the "Book" buttons
+   and fast scrolling don't freeze for half a second when it appears. It only calls the existing window.mountBooking();
+   the booking code, its n8n links and its fields are unchanged, and nothing is sent anywhere
+   (the calendar asks n8n only after a visitor picks a date). */
+(function(){function go(){if(window.mountBooking)window.mountBooking();}
+addEventListener('load',function(){setTimeout(function(){(window.requestIdleCallback||function(f){setTimeout(f,1)})(go,{timeout:500});},800);});})();
+</script>
 </body>
 </html>
